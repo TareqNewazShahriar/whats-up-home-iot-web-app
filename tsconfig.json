@@ -6,7 +6,8 @@
     "types": ["vuetify"],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "allowJs": true
   },
 
   "references": [

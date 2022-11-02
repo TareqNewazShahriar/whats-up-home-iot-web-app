@@ -1,35 +1,107 @@
-<script setup lang="ts">
-import HelloWorld from '@/components/HelloWorld.vue'
+<script setup>
+
 </script>
 
 <template>
-   <v-container class="fill-height">
-      <v-responsive class="d-flex fill-height">
-         <div class="cover-image d-flex" style="justify-content:space-between;">
-            <div></div>
-            <div class="d-flex flex-column justify-center pa-2" :style="$vuetify.display.xs ? 'width:80%' : 'width:50%'">
-               <div class="d-flex align-center">
-                  <span class="mr-2">Make</span>
-                  <v-text-field hide-details :variant="$vuetify.display.xs ? 'filled' : 'outlined'" style="width:100%;" />
+   <div>
+      <h1>Home IoT</h1>
+      <table>
+         <tr>
+            <th>Room Temperature</th>
+            <td><span id="thermistor"></span></td>
+         </tr>
+         <tr>
+            <th>Room Light Condition</th>
+            <td>
+               <span id="photoresistor"></span>
+               <br>
+               <small>[Hint: <span id="photoresistorStatus"></span>]</small>
+            </td>
+         </tr>
+         <tr>
+            <th>Bulb Control Mode</th>
+            <td>
+               <label><input type="radio" name="bulbControlMode" value="1"> Sensor</label>
+               <label><input type="radio" name="bulbControlMode" value="2"> Manual</label>
+            </td>
+         </tr>
+         <tr>
+            <th>Bulb State</th>
+            <td>
+               <label><input type="radio" name="bulbState" value="1" disabled> ON</label>
+               <label><input type="radio" name="bulbState" value="0" disabled> OFF</label>
+            </td>
+         </tr>
+         <tr>
+            <th>
+               Connected Clients
+            </th>
+            <td>
+               <span id="connectionCount"></span>
+               <br>
+               <small style="font-weight: normal;">(number of clients connected to Raspberry PI over internet)</small>
+            </td>
+         </tr>
+         <tr>
+            <th>Local Proxy Status</th>
+            <td><span id="local-proxy-status"></span></td>
+         </tr>
+         <tr>
+            <th>Last checked</th>
+            <td><b id="last-checked"></b></td>
+         </tr>
+         <tr>
+            <th>Pi Health Data</th>
+            <td>
+               <div style="overflow: auto; width: 60vw;">
+                  <pre id="pi-health-data"></pre>
                </div>
-               <div class=" d-flex align-center mt-3">
-                  <span class="mr-2">Model</span>
-                  <v-select hide-details :variant="$vuetify.display.xs ? 'filled' : 'outlined'" style="width:100%;" />
-               </div>
-               <v-btn :flat="!$vuetify.display.xs" color="primary" class="mt-3">Save</v-btn>
-            </div>
-         </div>
-         <HelloWorld msg="You did it!" />
-      </v-responsive>
-   </v-container>
+            </td>
+         </tr>
+         <tr>
+            <th>Actions</th>
+            <td>
+               <button type="button" id="stat">PI Health</button>
+               <button type="button" id="terminate-app">Terminate Node App</button>
+               <button type="button" id="reboot">Reboot Raspberry Pi</button>
+               <button type="button" id="poweroff">Poweroff Raspberry Pi</button>
+            </td>
+         </tr>
+      </table>
+      <footer>
+         <pre id="notify"></pre>
+      </footer>
+   </div>
 </template>
 
 <style>
-.cover-image {
-   background: linear-gradient(rgba(206, 205, 205, 0.4), rgba(240, 239, 239, 0.4));
-   background-position: center center;
-   background-repeat: no-repeat;
-   background-size: cover;
-   height: 250px;
+th,
+td {
+   border-top: 1px solid black;
+}
+
+th {
+   text-align: left;
+   vertical-align: top;
+}
+
+button {
+   margin: 4px;
+   padding: 8px;
+}
+
+input[type=checkbox],
+input[type=radio] {
+   height: 20px;
+   width: 20px;
+}
+
+footer {
+   background-color: black;
+   border: inset black;
+   bottom: 0;
+   color: whitesmoke;
+   padding: 5px;
+   overflow: auto;
 }
 </style>
