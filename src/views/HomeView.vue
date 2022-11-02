@@ -1,5 +1,5 @@
 <script setup>
-
+import { firestoreService, DB } from '@/services/firestoreService';
 </script>
 
 <template>
