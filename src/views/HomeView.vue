@@ -77,15 +77,16 @@ function log(data) {
          <tr>
             <th>Bulb Control Mode</th>
             <td>
-               <label><input type="radio" v-model="machineData.bulbControlMode" value="1"> Sensor</label>
-               <label><input type="radio" v-model="machineData.bulbControlMode" value="2"> Manual</label>
+               <v-radio-group color="primary" inline v-model="machineData.bulbControlMode">
+                  <v-radio label="Sensor" value="1"></v-radio>
+                  <v-radio label="Manual" value="2"></v-radio>
+               </v-radio-group>
             </td>
          </tr>
          <tr>
             <th>Bulb State</th>
             <td>
-               <label><input type="radio" v-model="machineData.bulbState" value="1" disabled> ON</label>
-               <label><input type="radio" v-model="machineData.bulbState" value="0" disabled> OFF</label>
+               <v-switch hide-details color="primary" v-model="machineData.bulbState"></v-switch>
             </td>
          </tr>
          <tr>
@@ -103,7 +104,7 @@ function log(data) {
          <tr>
             <th>Actions</th>
             <td>
-               <v-btn @click="commandToReboot">Reboot Raspberry Pi</v-btn>
+               <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </td>
          </tr>
       </table>
@@ -121,7 +122,7 @@ td {
 
 th {
    text-align: left;
-   vertical-align: top;
+   vertical-align: center;
 }
 
 button {
