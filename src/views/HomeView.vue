@@ -7,7 +7,7 @@ const DATA_INTERVAL = 5 * 60 * 1000;
 const machineData = reactive({
    thermistor: {},
    photoresistor: {},
-   photoresistorStatus: null,
+   photoresistorStatus: [],
    bulbControlMode: null,
    bulbState: null,
    time: null,
@@ -21,7 +21,12 @@ onMounted(() => {
       DB.Collections.values,
       'machine-data',
       true,
-      data => { Object.assign(machineData, data); log({message: `Received '${data.id}' response.`}); },
+      data => { 
+         data.bulbState =  Boolean(data.bulbState);
+         Object.assign(machineData, data);
+
+         log({message: `Received '${data.id}' response.`});
+      },
       log);
 
    setInterval(
@@ -32,15 +37,21 @@ onMounted(() => {
       DATA_INTERVAL);
 });
 
-function changeBulbControlMode() {
+function changeBulbControlMode(e) {
    if(confirm('Change bulb control mode?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: new Date() }).catch(log);
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
+   }
+   else{
+      e.preventDefault();
    }
 }
 
-function changeBulbState() {
+function changeBulbState(e) {
    if(confirm('Change bulb state?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: new Date() }).catch(log);
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: Number(machineData.bulbState) }).catch(log);
+   }
+   else {
+      e.preventDefault();
    }
 }
 
@@ -51,10 +62,10 @@ function commandToReboot() {
 }
 
 function log(data) {
-   firestoreService.create(DB.Collections.logs, data, new Date().toUTCString())
+   firestoreService.create(DB.Collections.logs, data, new Date())
       .catch(error => logData.push({time: new Date().toUTCString(), error}));
    
-   logData.push({time: new Date().toUTCString(), data});
+   logData.push({time: new Date().toUTCString(), data: JSON.stringify(data)});
 }
 </script>
 
@@ -77,21 +88,21 @@ function log(data) {
          <tr>
             <th>Bulb Control Mode</th>
             <td>
-               <v-radio-group color="primary" inline v-model="machineData.bulbControlMode">
-                  <v-radio label="Sensor" value="1"></v-radio>
-                  <v-radio label="Manual" value="2"></v-radio>
+               <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" hide-details>
+                  <v-radio label="Sensor" :value="1"></v-radio>
+                  <v-radio label="Manual" :value="2"></v-radio>
                </v-radio-group>
             </td>
          </tr>
          <tr>
             <th>Bulb State</th>
             <td>
-               <v-switch hide-details color="primary" v-model="machineData.bulbState"></v-switch>
+               <v-switch hide-details color="primary" v-model="machineData.bulbState" @change="changeBulbState"></v-switch>
             </td>
          </tr>
          <tr>
             <th>Last checked</th>
-            <td><b>{{machineData.time}}</b></td>
+            <td><b>{{machineData.time ? machineData.time : null}}</b></td>
          </tr>
          <tr>
             <th>Pi Health Data</th>
