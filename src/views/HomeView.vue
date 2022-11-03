@@ -4,7 +4,7 @@ import { firestoreService, DB } from '@/services/firestoreService';
 
 const DATA_INTERVAL = 5 * 60 * 1000;
 
-const clientData = reactive({
+const machineData = reactive({
    thermistor: {},
    photoresistor: {},
    photoresistorStatus: null,
@@ -19,17 +19,17 @@ const logData = reactive([]);
 onMounted(() => {
    firestoreService.attachListenerOnDocument(
       DB.Collections.values,
-      'client-data',
+      'machine-data',
       true,
-      data => { Object.assign(clientData, data); log({message: 'Received "client-data" response.'}); },
+      data => { Object.assign(machineData, data); log({message: `Received '${data.id}' response.`}); },
       log);
 
-   setInterval((function clientDataRequest() {
-      log({message: 'Sending `client-data` request.'});
-      firestoreService.update(DB.Collections.values, 'client-data-request__from-client', { value: new Date() }).catch(log);
-
-      return clientDataRequest;
-   })(), DATA_INTERVAL);
+   setInterval(
+      (function clientDataRequest() {
+         firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
+         return clientDataRequest;
+      })(),
+      DATA_INTERVAL);
 });
 
 function changeBulbControlMode() {
@@ -64,46 +64,46 @@ function log(data) {
       <table>
          <tr>
             <th>Room Temperature</th>
-            <td>{{clientData.thermistor.success ? clientData.thermistor.value : null}}</td>
+            <td>{{machineData.thermistor.success ? machineData.thermistor.value : null}}</td>
          </tr>
          <tr>
             <th>Room Light Condition</th>
             <td>
-               {{clientData.photoresistor.success ? clientData.photoresistor.value : null}}
+               {{machineData.photoresistor.success ? machineData.photoresistor.value : null}}
                <br>
-               <small>[Hint: {{clientData.photoresistorStatus}}]</small>
+               <small>[Hint: {{machineData.photoresistorStatus}}]</small>
             </td>
          </tr>
          <tr>
             <th>Bulb Control Mode</th>
             <td>
-               <label><input type="radio" v-model="clientData.bulbControlMode" value="1"> Sensor</label>
-               <label><input type="radio" v-model="clientData.bulbControlMode" value="2"> Manual</label>
+               <label><input type="radio" v-model="machineData.bulbControlMode" value="1"> Sensor</label>
+               <label><input type="radio" v-model="machineData.bulbControlMode" value="2"> Manual</label>
             </td>
          </tr>
          <tr>
             <th>Bulb State</th>
             <td>
-               <label><input type="radio" v-model="clientData.bulbState" value="1" disabled> ON</label>
-               <label><input type="radio" v-model="clientData.bulbState" value="0" disabled> OFF</label>
+               <label><input type="radio" v-model="machineData.bulbState" value="1" disabled> ON</label>
+               <label><input type="radio" v-model="machineData.bulbState" value="0" disabled> OFF</label>
             </td>
          </tr>
          <tr>
             <th>Last checked</th>
-            <td><b>{{clientData.time}}</b></td>
+            <td><b>{{machineData.time}}</b></td>
          </tr>
          <tr>
             <th>Pi Health Data</th>
             <td>
                <div style="overflow: auto; width: 60vw;">
-                  <pre v-html="clientData.piHealthData.value"></pre>
+                  <pre v-html="machineData.piHealthData.value"></pre>
                </div>
             </td>
          </tr>
          <tr>
             <th>Actions</th>
             <td>
-               <v-btn onchange="commandToReboot">Reboot Raspberry Pi</v-btn>
+               <v-btn @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </td>
          </tr>
       </table>
