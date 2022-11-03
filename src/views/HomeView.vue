@@ -62,10 +62,14 @@ function commandToReboot() {
 }
 
 function log(data) {
-   firestoreService.create(DB.Collections.logs, data, new Date())
-      .catch(error => logData.push({time: new Date().toUTCString(), error}));
-   
-   logData.push({time: new Date().toUTCString(), data: JSON.stringify(data)});
+   logData.push(`[${new Date().toUTCString()}] ${JSON.stringify(data)}`);
+
+   firestoreService.create(DB.Collections.logs, data, new Date().toJSON())
+      .catch(error => { logData.push(`[${new Date().toUTCString()}] ${error.toJsonString()}`); });
+}
+
+Error.prototype.toJsonString = function() {
+   return JSON.stringify(this, Object.getOwnPropertyNames(this));
 }
 </script>
 
