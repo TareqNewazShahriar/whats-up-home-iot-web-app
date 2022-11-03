@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, CollectionReference, DocumentSnapshot, type DocumentData } from 'firebase/firestore';
+import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, CollectionReference, DocumentSnapshot, type DocumentData, setDoc, DocumentReference } from 'firebase/firestore';
 
 const DB = {
    Collections: { values: 'values', faces: 'faces', logs: 'logs' },
@@ -15,7 +15,7 @@ const firebaseConfig = {
    messagingSenderId: '939481304082',
    appId: '1:939481304082:web:9e67ea9e239b8c4b1d5ccb',
    measurementId: 'G-LSMFWTCFJ0'
- };
+};
 
 // Initialize Firebase
 const _app = initializeApp(firebaseConfig);
@@ -94,34 +94,36 @@ function getById(collectionName:string, docId:string):Promise<any> {
    Single document binder doesn't have a stete (type) porperty.
    As of Oct 22, Node.js implementation of firesotre SDK doesn't have pendingWrite feature.
 */
-function attachListenerOnDocument(collectionName:string, docId:string, skipFirst:boolean|undefined, onChange:Function):any {
-   
-   const unsub = onSnapshot(doc(_db, collectionName, docId), (doc) => {
-      if(skipFirst === true) {
-         skipFirst = undefined;
-         return;
-      }
-      
-      const document = prepareTheDoc(doc);
-      onChange({ success: true, doc: document});
-   });
+function attachListenerOnDocument(collectionName:string, docId:string, skipFirst:boolean|undefined, onChange:Function, onError:Function):any {
+   const unsub = onSnapshot(doc(_db, collectionName, docId),
+      (doc) => {
+         if(skipFirst === true) {
+            skipFirst = undefined;
+            return;
+         }
+         
+         onChange(prepareTheDoc(doc));
+      },
+      error => onError({ message: `Error occurred on document listener. Collection: ${collectionName}, ID: ${docId}.`, error: toJsonObject(error) }));
 
    return unsub;
 }
 
-function create(collectionName:string, data:any):Promise<string> {
+function create(collectionName:string, data:any, docId?:string):Promise<string> {
    return new Promise((resolve, reject) => {
-      addDoc(collection(_db, collectionName), data)
-         .then(docRef => resolve(docRef.id))
-         .catch(err => reject(err));
+      // const promise = docId ?
+      //    setDoc(doc(_db, collectionName, docId!), data) :
+      //    addDoc(collection(_db, collectionName), data);
+
+      setDoc(doc(_db, collectionName, docId!), data)
+         .then((docRef:any) => { console.log(docRef); resolve(docRef.id); })
+         .catch(error => reject({message: `Error occurred while creating document. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error)}));
    });
 }
 
-
 function update(collectionName:string, docId:string, data:any):Promise<null> {
    return new Promise((resolve, reject) => {
-      const dbDocRef = doc(_db, collectionName, docId);
-      updateDoc(dbDocRef, data)
+      updateDoc(doc(_db, collectionName, docId), data)
          .then(() => resolve(null))
          .catch(error => reject({ msg: `Error on updating a record in ${collectionName}, ID: ${docId}.`, error: error }));
    });
@@ -149,6 +151,11 @@ function prepareTheDoc(doc:DocumentSnapshot<DocumentData>) {
 
    return document;
 }
+
+function toJsonObject(error:object):object {
+   return JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)));
+}
+
 
 const firestoreService = {
    getCollection,

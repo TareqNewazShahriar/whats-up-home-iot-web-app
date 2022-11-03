@@ -1,37 +1,61 @@
-<script>
+<script setup>
 import { reactive, onMounted } from 'vue';
 import { firestoreService, DB } from '@/services/firestoreService';
 
 const DATA_INTERVAL = 5 * 60 * 1000;
 
-const cliendData = reactive({
-   thermistor: null,
-   photoresistor: null,
+const clientData = reactive({
+   thermistor: {},
+   photoresistor: {},
    photoresistorStatus: null,
    bulbControlMode: null,
    bulbState: null,
-   lastChecked: null,
-   piHealthData: null
-})
+   time: null,
+   piHealthData: {}
+});
+
+const logData = reactive([]);
 
 onMounted(() => {
-   firestoreService.attachListenerOnDocument(DB.Collections.values,
-   'client-data',
-   true,
-   data => {
-      cliendData.bulbControlMode = data.value;
-   });
+   firestoreService.attachListenerOnDocument(
+      DB.Collections.values,
+      'client-data',
+      true,
+      data => { Object.assign(clientData, data); log({message: 'Received "client-data" response.'}); },
+      log);
 
-   setInterval(() => {
-      firestoreService.update(DB.Collections.values, 'cliend-data-request__from-client', { value: new Date() })
-         .catch();
-   }, DATA_INTERVAL)
-})
+   setInterval((function clientDataRequest() {
+      log({message: 'Sending `client-data` request.'});
+      firestoreService.update(DB.Collections.values, 'client-data-request__from-client', { value: new Date() }).catch(log);
 
-function log(data) {
-   firestoreService.create(DB.Collections.logs, data, new Date().toJSON())
+      return clientDataRequest;
+   })(), DATA_INTERVAL);
+});
+
+function changeBulbControlMode() {
+   if(confirm('Change bulb control mode?') === true) {
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: new Date() }).catch(log);
+   }
 }
 
+function changeBulbState() {
+   if(confirm('Change bulb state?') === true) {
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: new Date() }).catch(log);
+   }
+}
+
+function commandToReboot() {
+   if(confirm('Confirm reboot?') == true) {
+      firestoreService.update(DB.Collections.values, 'reboot__from-client', { value: new Date() }).catch(log);
+   }
+}
+
+function log(data) {
+   firestoreService.create(DB.Collections.logs, data, new Date().toUTCString())
+      .catch(error => logData.push({time: new Date().toUTCString(), error}));
+   
+   logData.push({time: new Date().toUTCString(), data});
+}
 </script>
 
 <template>
@@ -40,12 +64,12 @@ function log(data) {
       <table>
          <tr>
             <th>Room Temperature</th>
-            <td>{{clientData.thermistor}}</td>
+            <td>{{clientData.thermistor.success ? clientData.thermistor.value : null}}</td>
          </tr>
          <tr>
             <th>Room Light Condition</th>
             <td>
-               {{clientData.photoresistor}}
+               {{clientData.photoresistor.success ? clientData.photoresistor.value : null}}
                <br>
                <small>[Hint: {{clientData.photoresistorStatus}}]</small>
             </td>
@@ -66,27 +90,25 @@ function log(data) {
          </tr>
          <tr>
             <th>Last checked</th>
-            <td><b>{{clientData.lastChecked}}</b></td>
+            <td><b>{{clientData.time}}</b></td>
          </tr>
          <tr>
             <th>Pi Health Data</th>
             <td>
                <div style="overflow: auto; width: 60vw;">
-                  <pre v-html="piHealthData"></pre>
+                  <pre v-html="clientData.piHealthData.value"></pre>
                </div>
             </td>
          </tr>
          <tr>
             <th>Actions</th>
             <td>
-               <button type="button" id="stat">PI Health</button>
-               <button type="button" id="terminate-app">Terminate Node App</button>
-               <button type="button" id="reboot">Reboot Raspberry Pi</button>
+               <v-btn onchange="commandToReboot">Reboot Raspberry Pi</v-btn>
             </td>
          </tr>
       </table>
       <footer>
-         <pre id="notify"></pre>
+         <pre>{{logData}}</pre>
       </footer>
    </div>
 </template>

@@ -12,10 +12,9 @@ import { RouterLink, RouterView } from 'vue-router'
             <span class="ml-2">{{ `${new Date().getHours()}:${new Date().getMinutes()}` }}</span>
          </v-system-bar>
 
-         <div class="wrapper">
+         <div class="wrapper" v-if="false">
             <nav>
                <RouterLink to="/">Home</RouterLink>
-               <RouterLink to="/about">About</RouterLink>
             </nav>
          </div>
       </header>
