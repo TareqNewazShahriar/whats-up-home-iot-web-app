@@ -22,9 +22,9 @@ onMounted(() => {
       'machine-data',
       true,
       data => {
-         data.bulbState =  Boolean(data.bulbState);
+         data.bulbState = Boolean(data.bulbState);
          Object.assign(machineData, data);
-         log({message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
+         log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
       },
       log);
 
@@ -38,16 +38,16 @@ onMounted(() => {
 });
 
 function changeBulbControlMode(e) {
-   if(confirm('Change bulb control mode?') === true) {
+   if (confirm('Change bulb control mode?') === true) {
       firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
    }
-   else{
+   else {
       e.preventDefault();
    }
 }
 
 function changeBulbState(e) {
-   if(confirm('Change bulb state?') === true) {
+   if (confirm('Change bulb state?') === true) {
       firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: Number(machineData.bulbState) }).catch(log);
    }
    else {
@@ -56,7 +56,7 @@ function changeBulbState(e) {
 }
 
 function commandToReboot() {
-   if(confirm('Confirm reboot?') == true) {
+   if (confirm('Confirm reboot?') == true) {
       firestoreService.update(DB.Collections.values, 'reboot__from-client', { value: new Date() }).catch(log);
    }
 }
@@ -69,7 +69,7 @@ function log(data) {
       .catch(error => { logData.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
 }
 
-Error.prototype.toJsonString = function() {
+Error.prototype.toJsonString = function () {
    return JSON.stringify(this, Object.getOwnPropertyNames(this));
 }
 </script>
@@ -77,82 +77,79 @@ Error.prototype.toJsonString = function() {
 <template>
    <div>
       <h1>Whats Up Home IoT - Client App</h1>
-      <table>
-         <tr>
-            <th>Room Temperature</th>
-            <td>{{machineData.thermistor.success ? machineData.thermistor.value : null}}</td>
-         </tr>
-         <tr>
-            <th>Room Light Condition</th>
-            <td>
-               {{machineData.photoresistor.success ? machineData.photoresistor.value : null}}
-               <br>
-               <small>[Hint: {{machineData.photoresistorStatus}}]</small>
-            </td>
-         </tr>
-         <tr>
-            <th>Bulb Control Mode</th>
-            <td>
-               <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" hide-details>
-                  <v-radio label="Sensor" :value="1"></v-radio>
-                  <v-radio label="Manual" :value="2"></v-radio>
-               </v-radio-group>
-            </td>
-         </tr>
-         <tr>
-            <th>Bulb State</th>
-            <td>
-               <v-switch hide-details color="primary" v-model="machineData.bulbState" @change="changeBulbState"></v-switch>
-            </td>
-         </tr>
-         <tr>
-            <th>Last checked</th>
-            <td><b>{{machineData.time ? machineData.time.toUTCString() : null}}</b></td>
-         </tr>
-         <tr>
-            <th>Pi Health Data</th>
-            <td>
-               <div style="overflow: auto; width: 60vw;">
-                  <pre v-html="machineData.piHealthData.value"></pre>
+      <div class="card-list">
+         <v-card class="ma-5">
+            <v-card-item>
+               <v-card-title>Environment</v-card-title>
+            </v-card-item>
+            <v-card-text>
+               <div>
+                  <strong>Room Temperature</strong>
+                  {{ machineData.thermistor.success ? machineData.thermistor.value : null }}
                </div>
-            </td>
-         </tr>
-         <tr>
-            <th>Actions</th>
-            <td>
-               <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
-            </td>
-         </tr>
-      </table>
-      <footer>
-         <pre>{{logData}}</pre>
-      </footer>
+               <div>
+                  <strong>Room Light Condition</strong>
+                  {{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
+                  <br />
+                  <div class="ml-5">[Hint: {{ machineData.photoresistorStatus }}]</div>
+               </div>
+               <div class="mt-4">
+                  <strong>Bulb Control Mode</strong>
+                  <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" hide-details>
+                     <v-radio label="Sensor" :value="1"></v-radio>
+                     <v-radio label="Manual" :value="2"></v-radio>
+                  </v-radio-group>
+               </div>
+               <div>
+                  <strong>Bulb State</strong>
+                  <v-switch hide-details color="primary" v-model="machineData.bulbState" @change="changeBulbState"></v-switch>
+               </div>
+            </v-card-text>
+         </v-card>
+
+         <v-card class="ma-5">
+            <v-card-item>
+               <v-card-title>PI Health</v-card-title>
+            </v-card-item>
+            <v-card-text style="overflow: auto; max-height:300px;">
+               <pre v-html="machineData.piHealthData.value"></pre>
+            </v-card-text>
+         </v-card>
+
+         <v-card class="ma-5">
+            <v-card-item>
+               <v-card-title>Misc</v-card-title>
+            </v-card-item>
+            <v-card-text>
+               <div>
+                  <strong>Last checked</strong>
+                  {{ machineData.time ? machineData.time.toUTCString() : null }}
+               </div>
+               <div class="mt-5">
+                  <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
+               </div>
+            </v-card-text>
+         </v-card>
+
+         <v-card class="ma-5 console">
+            <v-card-item>
+               <v-card-title>Console</v-card-title>
+            </v-card-item>
+            <v-card-text style="overflow: auto; max-height:300px;">
+               <pre>{{ logData }}</pre>
+            </v-card-text>
+         </v-card>
+      </div>
    </div>
 </template>
 
 <style>
-th,
-td {
-   border-top: 1px solid black;
+.card-list {
+   display: grid;
+   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
 }
 
-th {
-   text-align: left;
-   vertical-align: center;
-}
-
-button {
-   margin: 4px;
-   padding: 8px;
-}
-
-input[type=checkbox],
-input[type=radio] {
-   height: 20px;
-   width: 20px;
-}
-
-footer {
+.console {
    background-color: black;
    border: inset black;
    bottom: 0;
