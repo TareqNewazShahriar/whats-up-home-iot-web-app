@@ -76,7 +76,7 @@ Error.prototype.toJsonString = function() {
 
 <template>
    <div>
-      <h1>Home IoT</h1>
+      <h1>Whats Up Home IoT - Client App</h1>
       <table>
          <tr>
             <th>Room Temperature</th>
