@@ -24,8 +24,7 @@ onMounted(() => {
       data => {
          data.bulbState =  Boolean(data.bulbState);
          Object.assign(machineData, data);
-
-         log({message: `Received '${data.id}' response.`, parent_pid: data.parent_pid, pid: data.node_pid });
+         log({message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
       },
       log);
 
@@ -63,7 +62,7 @@ function commandToReboot() {
 }
 
 function log(data) {
-   data.browserUserAgent = navigator.userAgent;
+   data.browser = navigator.userAgent;
    logData.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
 
    firestoreService.create(DB.Collections.logs, data, new Date().toJSON())

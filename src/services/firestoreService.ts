@@ -117,7 +117,7 @@ function create(collectionName:string, data:any, docId?:string):Promise<string> 
 
       promise
          .then((docRef:any) => { resolve(docRef ? docRef.id : ''); })
-         .catch((error:FirebaseError) => reject({ message: `Error occurred while creating document. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error) }));
+         .catch((error:any) => { reject({ message: `Error occurred while creating document. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error) }); });
    });
 }
 
@@ -153,7 +153,7 @@ function prepareTheDoc(doc:DocumentSnapshot<DocumentData>) {
 }
 
 function toJsonObject(obj:object) :object {
-   return JSON.parse(JSON.stringify(obj, Object.getOwnPropertyNames(obj)));
+   return JSON.parse(JSON.stringify(obj, Object.keys(obj)));
 }
 
 
