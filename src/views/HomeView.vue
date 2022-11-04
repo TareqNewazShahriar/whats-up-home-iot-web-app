@@ -21,17 +21,18 @@ onMounted(() => {
       DB.Collections.values,
       'machine-data',
       true,
-      data => { 
+      data => {
          data.bulbState =  Boolean(data.bulbState);
          Object.assign(machineData, data);
 
-         log({message: `Received '${data.id}' response.`});
+         log({message: `Received '${data.id}' response.`, parent_pid: data.parent_pid, pid: data.node_pid });
       },
       log);
 
    setInterval(
       (function clientDataRequest() {
          firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
+         logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
          return clientDataRequest;
       })(),
       DATA_INTERVAL);
@@ -62,10 +63,11 @@ function commandToReboot() {
 }
 
 function log(data) {
-   logData.push(`[${new Date().toUTCString()}] ${JSON.stringify(data)}`);
+   data.browserUserAgent = navigator.userAgent;
+   logData.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
 
    firestoreService.create(DB.Collections.logs, data, new Date().toJSON())
-      .catch(error => { logData.push(`[${new Date().toUTCString()}] ${error.toJsonString()}`); });
+      .catch(error => { logData.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
 }
 
 Error.prototype.toJsonString = function() {
@@ -106,7 +108,7 @@ Error.prototype.toJsonString = function() {
          </tr>
          <tr>
             <th>Last checked</th>
-            <td><b>{{machineData.time ? machineData.time : null}}</b></td>
+            <td><b>{{machineData.time ? machineData.time.toUTCString() : null}}</b></td>
          </tr>
          <tr>
             <th>Pi Health Data</th>
