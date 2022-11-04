@@ -52,6 +52,7 @@ function changeBulbState(e) {
    }
    else {
       e.preventDefault();
+      return false;
    }
 }
 
@@ -85,13 +86,14 @@ Error.prototype.toJsonString = function () {
             <v-card-text>
                <div>
                   <strong>Room Temperature</strong>
-                  {{ machineData.thermistor.success ? machineData.thermistor.value : null }}
+                  {{ machineData.thermistor.success ? machineData.thermistor.value.toString() : null }}
                </div>
-               <div>
-                  <strong>Room Light Condition</strong>
-                  {{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
-                  <br />
-                  <div class="ml-5">[Hint: {{ machineData.photoresistorStatus }}]</div>
+               <div class="d-flex">
+                  <strong class="text-no-wrap mr-2">Room Light<br/>Condition</strong>
+                  <span>{{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
+                     <br />
+                     <div class="mt-2">[Hint: {{ machineData.photoresistorStatus }}]</div>
+                  </span>
                </div>
                <div class="mt-4">
                   <strong>Bulb Control Mode</strong>
@@ -144,11 +146,14 @@ Error.prototype.toJsonString = function () {
 </template>
 
 <style>
-.card-list {
-   display: grid;
-   grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-}
 
+
+@media (min-width: 600px) {
+   .card-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+   }
+}
 .console {
    background-color: black;
    border: inset black;
