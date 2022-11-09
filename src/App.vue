@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { RouterLink, RouterView, useRouter } from 'vue-router'
-
-useRouter().push({ name: 'home' });
+import { RouterLink, RouterView } from 'vue-router'
 </script>
 
 <template>
