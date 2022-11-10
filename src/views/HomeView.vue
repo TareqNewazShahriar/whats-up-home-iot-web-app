@@ -32,6 +32,11 @@ onMounted(() => {
       (function clientDataRequest() {
          firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
          logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
+         
+         setTimeout(() => {
+            logData.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
+         }, 3000);
+
          return clientDataRequest;
       })(),
       DATA_INTERVAL);
@@ -78,8 +83,8 @@ Error.prototype.toJsonString = function () {
 <template>
    <div>
       <h1>Whats Up Home IoT - Client App</h1>
-      <div class="card-list">
-         <v-card class="ma-5">
+      <div class="card-list my-8">
+         <v-card class="elevation-5">
             <v-card-item>
                <v-card-title>Environment</v-card-title>
             </v-card-item>
@@ -95,7 +100,7 @@ Error.prototype.toJsonString = function () {
                      <div class="mt-2">[Hint: {{ machineData.photoresistorStatus }}]</div>
                   </span>
                </div>
-               <div class="mt-4">
+               <div class="mt-4 d-inline-flex">
                   <strong>Bulb Control Mode</strong>
                   <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" hide-details>
                      <v-radio label="Sensor" :value="1"></v-radio>
@@ -109,7 +114,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="ma-5">
+         <v-card class="elevation-5">
             <v-card-item>
                <v-card-title>PI Health</v-card-title>
             </v-card-item>
@@ -118,7 +123,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="ma-5">
+         <v-card class="elevation-5">
             <v-card-item>
                <v-card-title>Misc</v-card-title>
             </v-card-item>
@@ -133,7 +138,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="ma-5 console">
+         <v-card class="console elevation-5">
             <v-card-item>
                <v-card-title>Console</v-card-title>
             </v-card-item>
@@ -146,12 +151,16 @@ Error.prototype.toJsonString = function () {
 </template>
 
 <style>
-
+.card-list {
+   display: grid;
+   row-gap: 30px;
+}
 
 @media (min-width: 600px) {
    .card-list {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 30px 30px;
    }
 }
 .console {

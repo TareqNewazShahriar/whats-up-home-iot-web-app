@@ -17,6 +17,9 @@ const vuetifyApp = createVuetify({
        },
      },
    },
+   defaults: {
+      global: { hideDetails: true }
+   }
 });
 
 const app = createApp(App)
