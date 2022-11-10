@@ -1,12 +1,8 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHashHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 
-const rootRoute = window.location.href.includes('.github.io') ?
-   '/whats-up-home-iot-web-app/dist' :
-   import.meta.env.BASE_URL;
-
 const router = createRouter({
-  history: createWebHistory(rootRoute),
+  history: createWebHashHistory(),
   routes: [
     {
       path: '/',
