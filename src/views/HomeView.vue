@@ -84,7 +84,7 @@ Error.prototype.toJsonString = function () {
    <div>
       <h1>Whats Up Home IoT (Client)</h1>
       <div class="card-list my-8">
-         <v-card class="elevation-5">
+         <v-card>
             <v-card-item>
                <v-card-title>Environment</v-card-title>
             </v-card-item>
@@ -114,7 +114,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="elevation-5">
+         <v-card>
             <v-card-item>
                <v-card-title>PI Health</v-card-title>
             </v-card-item>
@@ -123,7 +123,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="elevation-5">
+         <v-card>
             <v-card-item>
                <v-card-title>Misc</v-card-title>
             </v-card-item>
@@ -138,7 +138,7 @@ Error.prototype.toJsonString = function () {
             </v-card-text>
          </v-card>
 
-         <v-card class="console elevation-5">
+         <v-card class="console">
             <v-card-item>
                <v-card-title>Console</v-card-title>
             </v-card-item>

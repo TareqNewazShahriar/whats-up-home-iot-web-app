@@ -18,7 +18,8 @@ const vuetifyApp = createVuetify({
      },
    },
    defaults: {
-      global: { hideDetails: true }
+      global: { hideDetails: true },
+      VCard: { elevation: 3 }
    }
 });
 
