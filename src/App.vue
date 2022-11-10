@@ -9,7 +9,7 @@ import { RouterLink, RouterView } from 'vue-router'
             <RouterLink to="/">Home</RouterLink>
          </nav>
       </header>
-      <v-main class="ma-2">
+      <v-main :class="$vuetify.display.xs? 'ma-2' : 'ma-7'">
          <RouterView></RouterView>
       </v-main>
    </v-app>

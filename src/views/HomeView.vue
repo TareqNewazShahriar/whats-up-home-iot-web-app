@@ -53,11 +53,11 @@ function changeBulbControlMode(e) {
 
 function changeBulbState(e) {
    if (confirm('Change bulb state?') === true) {
+      console.log(machineData.bulbState)
       firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: Number(machineData.bulbState) }).catch(log);
    }
    else {
       e.preventDefault();
-      return false;
    }
 }
 
@@ -82,7 +82,7 @@ Error.prototype.toJsonString = function () {
 
 <template>
    <div>
-      <h1>Whats Up Home IoT - Client App</h1>
+      <h1>Whats Up Home IoT (Client)</h1>
       <div class="card-list my-8">
          <v-card class="elevation-5">
             <v-card-item>
@@ -91,7 +91,7 @@ Error.prototype.toJsonString = function () {
             <v-card-text>
                <div>
                   <strong>Room Temperature</strong>
-                  {{ machineData.thermistor.success ? machineData.thermistor.value.toString() : null }}
+                  {{ machineData.thermistor.success ? machineData.thermistor.value.toFixed(1) : null }}
                </div>
                <div class="d-flex">
                   <strong class="text-no-wrap mr-2">Room Light<br/>Condition</strong>
@@ -109,7 +109,7 @@ Error.prototype.toJsonString = function () {
                </div>
                <div>
                   <strong>Bulb State</strong>
-                  <v-switch hide-details color="primary" v-model="machineData.bulbState" @change="changeBulbState"></v-switch>
+                  <v-switch hide-details color="primary" v-model="machineData.bulbState" @click="changeBulbState"></v-switch>
                </div>
             </v-card-text>
          </v-card>
