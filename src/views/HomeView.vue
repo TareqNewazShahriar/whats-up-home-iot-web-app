@@ -3,6 +3,7 @@ import { reactive, onMounted } from 'vue';
 import { firestoreService, DB } from '@/services/firestoreService';
 
 const DATA_INTERVAL = 5 * 60 * 1000;
+var _requestedDataRef;
 
 const machineData = reactive({
    thermistor: {},
@@ -22,6 +23,7 @@ onMounted(() => {
       'machine-data',
       true,
       data => {
+         clearTimeout(_requestedDataRef);
          data.bulbState = Boolean(data.bulbState);
          Object.assign(machineData, data);
          log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
@@ -32,10 +34,11 @@ onMounted(() => {
       (function clientDataRequest() {
          firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
          logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
-         
-         setTimeout(() => {
+
+         _requestedDataRef = setTimeout(() => {
             logData.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
-         }, 3000);
+         },
+         3000);
 
          return clientDataRequest;
       })(),
@@ -94,22 +97,23 @@ Error.prototype.toJsonString = function () {
                   {{ machineData.thermistor.success ? machineData.thermistor.value.toFixed(1) : null }}
                </div>
                <div class="d-flex">
-                  <strong class="text-no-wrap mr-2">Room Light<br/>Condition</strong>
-                  <span>{{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
+                  <strong class="text-no-wrap mr-2">Room Light<br />Condition</strong>
+                  <span>
+                     {{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
                      <br />
                      <div class="mt-2">[Hint: {{ machineData.photoresistorStatus }}]</div>
                   </span>
                </div>
-               <div class="mt-4 d-inline-flex">
+               <div class="mt-4 d-flex align-center">
                   <strong>Bulb Control Mode</strong>
-                  <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" hide-details>
+                  <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" @click="changeBulbControlMode">
                      <v-radio label="Sensor" :value="1"></v-radio>
                      <v-radio label="Manual" :value="2"></v-radio>
                   </v-radio-group>
                </div>
-               <div>
-                  <strong>Bulb State</strong>
-                  <v-switch hide-details color="primary" v-model="machineData.bulbState" @click="changeBulbState"></v-switch>
+               <div class="mt-4 d-flex align-center">
+                  <strong class="mr-2">Bulb State</strong>
+                  <v-switch color="primary" v-model="machineData.bulbState" @click="changeBulbState"></v-switch>
                </div>
             </v-card-text>
          </v-card>
@@ -163,6 +167,7 @@ Error.prototype.toJsonString = function () {
       gap: 30px 30px;
    }
 }
+
 .console {
    background-color: black;
    border: inset black;
