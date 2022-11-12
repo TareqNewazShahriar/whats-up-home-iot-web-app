@@ -1,6 +1,10 @@
 <script setup>
-import { reactive, onMounted } from 'vue';
+import { reactive, onMounted, nextTick } from 'vue';
 import { firestoreService, DB } from '@/services/firestoreService';
+
+Error.prototype.toJsonString = function () {
+   return JSON.stringify(this, Object.getOwnPropertyNames(this));
+}
 
 const DATA_INTERVAL = 5 * 60 * 1000;
 var _requestedDataRef;
@@ -17,37 +21,11 @@ const machineData = reactive({
 
 const logData = reactive([]);
 
-onMounted(() => {
-   firestoreService.attachListenerOnDocument(
-      DB.Collections.values,
-      'machine-data',
-      true,
-      data => {
-         clearTimeout(_requestedDataRef);
-         data.bulbState = Boolean(data.bulbState);
-         Object.assign(machineData, data);
-         log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
-      },
-      log);
-
-   setInterval(
-      (function clientDataRequest() {
-         firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
-         logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
-
-         _requestedDataRef = setTimeout(() => {
-            logData.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
-         },
-         3000);
-
-         return clientDataRequest;
-      })(),
-      DATA_INTERVAL);
-});
-
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
+      nextTick(() => {
+         firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
+      });
    }
    else {
       e.preventDefault();
@@ -56,8 +34,9 @@ function changeBulbControlMode(e) {
 
 function changeBulbState(e) {
    if (confirm('Change bulb state?') === true) {
-      console.log(machineData.bulbState)
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: Number(machineData.bulbState) }).catch(log);
+      nextTick(() => {
+         firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
+      });
    }
    else {
       e.preventDefault();
@@ -78,9 +57,31 @@ function log(data) {
       .catch(error => { logData.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
 }
 
-Error.prototype.toJsonString = function () {
-   return JSON.stringify(this, Object.getOwnPropertyNames(this));
+function requestMachineData() {
+   firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
+   logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
+
+   _requestedDataRef = setTimeout(() => {
+      logData.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
+   },
+   3000);
 }
+
+onMounted(() => {
+   firestoreService.attachListenerOnDocument(
+      DB.Collections.values,
+      'machine-data',
+      true,
+      data => {
+         clearTimeout(_requestedDataRef);
+         Object.assign(machineData, data);
+         log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
+      },
+      log);
+
+   requestMachineData();
+   setInterval(requestMachineData, DATA_INTERVAL);
+});
 </script>
 
 <template>
@@ -105,15 +106,20 @@ Error.prototype.toJsonString = function () {
                   </span>
                </div>
                <div class="mt-4 d-flex align-center">
-                  <strong>Bulb Control Mode</strong>
-                  <v-radio-group color="primary" inline v-model="machineData.bulbControlMode" @click="changeBulbControlMode">
-                     <v-radio label="Sensor" :value="1"></v-radio>
-                     <v-radio label="Manual" :value="2"></v-radio>
-                  </v-radio-group>
+                  <strong>Bulb Control Mode</strong>:
+                  <span class="d-flex align-center ml-3" style="gap: 8px">
+                     Sensor
+                     <v-switch density="compact" v-model="machineData.bulbControlMode" :false-value="1" :true-value="2" @click="changeBulbControlMode" />
+                     Manual
+                  </span>
                </div>
                <div class="mt-4 d-flex align-center">
-                  <strong class="mr-2">Bulb State</strong>
-                  <v-switch color="primary" v-model="machineData.bulbState" @click="changeBulbState"></v-switch>
+                  <strong class="mr-2">Bulb State</strong>:
+                  <span class="d-flex align-center ml-3" style="gap: 8px">
+                     OFF
+                     <v-switch :disabled="machineData.bulbControlMode===1" density="compact" v-model="machineData.bulbState" :false-value="0" :true-value="1" @click="changeBulbState"></v-switch>
+                     ON
+                  </span>
                </div>
             </v-card-text>
          </v-card>
@@ -129,16 +135,19 @@ Error.prototype.toJsonString = function () {
 
          <v-card>
             <v-card-item>
-               <v-card-title>Misc</v-card-title>
+               <v-card-title>Actions & Misc</v-card-title>
             </v-card-item>
-            <v-card-text>
-               <div>
-                  <strong>Last checked</strong>
-                  {{ machineData.time ? machineData.time.toUTCString() : null }}
+            <v-card-text class="d-flex flex-column mt-3" style="row-gap:20px;">
+               <div class="mb-10 d-flex">
+                  <strong class="mr-3">Last checked</strong>
+                  <div>
+                     {{ machineData.time ? machineData.time.toLocaleString() : null }}
+                     <br/>
+                     {{ machineData.time ? machineData.time.toUTCString() : null }}
+                  </div>
                </div>
-               <div class="mt-5">
-                  <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
-               </div>
+               <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
+               <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </v-card-text>
          </v-card>
 
