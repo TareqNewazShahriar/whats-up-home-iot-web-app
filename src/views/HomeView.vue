@@ -23,23 +23,21 @@ const logData = reactive([]);
 
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
-      nextTick(() => {
-         firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
-      });
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
    }
    else {
       e.preventDefault();
+      machineData.bulbControlMode = machineData.bulbControlMode === 1 ? 2 : 1; // revert the selection
    }
 }
 
 function changeBulbState(e) {
+   console.log(machineData.bulbState);
    if (confirm('Change bulb state?') === true) {
-      nextTick(() => {
-         firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
-      });
-   }
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);   }
    else {
       e.preventDefault();
+      machineData.bulbState = Number(!machineData.bulbState); // revert the selection
    }
 }
 
@@ -109,7 +107,7 @@ onMounted(() => {
                   <strong>Bulb Control Mode</strong>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
                      Sensor
-                     <v-switch density="compact" v-model="machineData.bulbControlMode" :false-value="1" :true-value="2" @click="changeBulbControlMode" />
+                     <v-switch density="compact" v-model="machineData.bulbControlMode" :false-value="1" :true-value="2" @change="changeBulbControlMode" />
                      Manual
                   </span>
                </div>
@@ -117,7 +115,7 @@ onMounted(() => {
                   <strong class="mr-2">Bulb State</strong>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
                      OFF
-                     <v-switch :disabled="machineData.bulbControlMode===1" density="compact" v-model="machineData.bulbState" :false-value="0" :true-value="1" @click="changeBulbState"></v-switch>
+                     <v-switch :disabled="machineData.bulbControlMode===1" density="compact" v-model="machineData.bulbState" :false-value="0" :true-value="1" @change="changeBulbState"></v-switch>
                      ON
                   </span>
                </div>
