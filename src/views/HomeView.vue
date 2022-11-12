@@ -1,5 +1,5 @@
 <script setup>
-import { reactive, onMounted, nextTick } from 'vue';
+import { reactive, ref, onMounted } from 'vue';
 import { firestoreService, DB } from '@/services/firestoreService';
 
 Error.prototype.toJsonString = function () {
@@ -18,12 +18,16 @@ const machineData = reactive({
    time: null,
    piHealthData: {}
 });
+const logData = ref([]);
+const bulbControlModeRequested = ref(false);
+const bulbStateRequested = ref(false);
+const isPiAlive = ref(true);
 
-const logData = reactive([]);
 
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
       firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
+      bulbControlModeRequested.value = true;
    }
    else {
       e.preventDefault();
@@ -34,7 +38,9 @@ function changeBulbControlMode(e) {
 function changeBulbState(e) {
    console.log(machineData.bulbState);
    if (confirm('Change bulb state?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);   }
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
+      bulbStateRequested.value = true;
+   }
    else {
       e.preventDefault();
       machineData.bulbState = Number(!machineData.bulbState); // revert the selection
@@ -49,23 +55,26 @@ function commandToReboot() {
 
 function log(data) {
    data.browser = navigator.userAgent;
-   logData.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
+   logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
 
    firestoreService.create(DB.Collections.logs, data, new Date().toJSON())
-      .catch(error => { logData.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
+      .catch(error => { logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
 }
 
 function requestMachineData() {
    firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
-   logData.push(`[${new Date().toUTCString()}] Machine data request sent.`)
+   logData.value.push(`[${new Date().toUTCString()}] Machine data request sent.`)
 
    _requestedDataRef = setTimeout(() => {
-      logData.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
+      logData.value.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
+      isPiAlive.value = false;
    },
    3000);
 }
 
 onMounted(() => {
+   console.log('mounted', new Date());
+
    firestoreService.attachListenerOnDocument(
       DB.Collections.values,
       'machine-data',
@@ -74,8 +83,36 @@ onMounted(() => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
          log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
+         isPiAlive.value = true;
       },
       log);
+
+   firestoreService.attachListenerOnDocument(
+      DB.Collections.values,
+      'bulb-control-mode__from-machine',
+      true,
+      () => {
+         console.log('got bulb-control-mode__from-machine')
+         bulbControlModeRequested.value = false;
+      },
+      errorData => {
+         bulbControlModeRequested.value = false;
+         log(errorData);
+      });
+   
+   firestoreService.attachListenerOnDocument(DB.Collections.values,
+      'bulb-state__from-machine',
+      true,
+      (doc) => {
+         console.log('got bulb-state__from-machine')
+         bulbStateRequested.value = false;
+         machineData.bulbState = doc.value;
+      },
+      errorData => {
+         bulbStateRequested.value = false;
+         log(errorData);
+      });
+
 
    requestMachineData();
    setInterval(requestMachineData, DATA_INTERVAL);
@@ -86,7 +123,7 @@ onMounted(() => {
    <div>
       <h1>Whats Up Home IoT (Client)</h1>
       <div class="card-list my-8">
-         <v-card>
+         <v-card env>
             <v-card-item>
                <v-card-title>Environment</v-card-title>
             </v-card-item>
@@ -104,25 +141,38 @@ onMounted(() => {
                   </span>
                </div>
                <div class="mt-4 d-flex align-center">
-                  <strong>Bulb Control Mode</strong>:
+                  <label class="font-weight-bold">Bulb Control Mode</label>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
                      Sensor
-                     <v-switch density="compact" v-model="machineData.bulbControlMode" :false-value="1" :true-value="2" @change="changeBulbControlMode" />
+                     <v-switch
+                        density="compact"
+                        :loading="bulbControlModeRequested ? 'primary': false"
+                        :false-value="1"
+                        :true-value="2"
+                        v-model="machineData.bulbControlMode"
+                        @change="changeBulbControlMode" />
                      Manual
                   </span>
                </div>
                <div class="mt-4 d-flex align-center">
-                  <strong class="mr-2">Bulb State</strong>:
+                  <label class="mr-2 font-weight-bold">Bulb State</label>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
                      OFF
-                     <v-switch :disabled="machineData.bulbControlMode===1" density="compact" v-model="machineData.bulbState" :false-value="0" :true-value="1" @change="changeBulbState"></v-switch>
+                     <v-switch
+                        density="compact"
+                        :loading="bulbStateRequested ? 'primary': false"
+                        :disabled="machineData.bulbControlMode === 1"
+                        :false-value="0"
+                        :true-value="1"
+                        v-model="machineData.bulbState"
+                        @change="changeBulbState" />
                      ON
                   </span>
                </div>
             </v-card-text>
          </v-card>
 
-         <v-card>
+         <v-card pi-health>
             <v-card-item>
                <v-card-title>PI Health</v-card-title>
             </v-card-item>
@@ -131,18 +181,22 @@ onMounted(() => {
             </v-card-text>
          </v-card>
 
-         <v-card>
+         <v-card misc>
             <v-card-item>
                <v-card-title>Actions & Misc</v-card-title>
             </v-card-item>
             <v-card-text class="d-flex flex-column mt-3" style="row-gap:20px;">
-               <div class="mb-10 d-flex">
-                  <strong class="mr-3">Last checked</strong>
+               <div class="d-flex">
+                  <label class="mr-3 font-weight-bold">Last checked</label>
                   <div>
                      {{ machineData.time ? machineData.time.toLocaleString() : null }}
                      <br/>
                      {{ machineData.time ? machineData.time.toUTCString() : null }}
                   </div>
+               </div>
+               <div>
+                  <label class="font-weight-bold mr-2">Raspberry PI alive?</label>
+                  {{isPiAlive}}
                </div>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
