@@ -21,7 +21,7 @@ const machineData = reactive({
 const logData = ref([]);
 const bulbControlModeRequested = ref(false);
 const bulbStateRequested = ref(false);
-const isPiAlive = ref(true);
+const communicationAlive = ref(false);
 
 
 function changeBulbControlMode(e) {
@@ -68,8 +68,8 @@ function requestMachineData() {
    log({message: `Machine data request sent.`}, true);
 
    _requestedDataRef = setTimeout(() => {
-      log({message: `Warn: Didn't get any response from Raspberry PI.`});
-      isPiAlive.value = false;
+      log({message: `Warn: Didn't get any machine-data response.`});
+      communicationAlive.value = false;
    },
    3000);
 }
@@ -82,7 +82,7 @@ onMounted(() => {
       data => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
-         isPiAlive.value = true;
+         communicationAlive.value = true;
          log({message: 'Machine data response received.'}, true);
       },
       log);
@@ -122,7 +122,7 @@ onMounted(() => {
 <template>
    <div>
       <div class="d-flex justify-end">
-         <v-icon :color="isPiAlive ? 'green-darken-1' : 'gray'">mdi-checkbox-blank-circle</v-icon>
+         <v-icon title="Communication status with Raspberry PI" :color="communicationAlive ? 'green-darken-1' : 'gray'">mdi-checkbox-blank-circle</v-icon>
       </div>
       <div class="card-list my-8">
          <v-card env>
@@ -197,8 +197,8 @@ onMounted(() => {
                   </div>
                </div>
                <div>
-                  <label class="font-weight-bold mr-2">Raspberry PI alive?</label>
-                  {{isPiAlive}}
+                  <label class="font-weight-bold mr-2">Communicating with Raspberry PI?</label>
+                  {{communicationAlive}}
                </div>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
