@@ -134,7 +134,7 @@ function update(collectionName: string, docId: string, data: any): Promise<null>
             .then(() => resolve(null))
             .catch(error => reject({ msg: `Error on updating a record in ${collectionName}, ID: ${docId}.`, error: error }));
       }
-      catch (error) {
+      catch (error:any) {
          reject({ msg: `Error from update try-catch. Collection ${collectionName}, ID: ${docId}.`, error: error })
       }
       

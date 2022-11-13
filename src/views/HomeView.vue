@@ -66,15 +66,13 @@ function requestMachineData() {
    logData.value.push(`[${new Date().toUTCString()}] Machine data request sent.`)
 
    _requestedDataRef = setTimeout(() => {
-      logData.value.push(`[${new Date().toUTCString()}] Warn: Didn't get any response from Raspberry PI.`)
+      log({message: `Warn: Didn't get any response from Raspberry PI.`});
       isPiAlive.value = false;
    },
    3000);
 }
 
 onMounted(() => {
-   console.log('mounted', new Date());
-
    firestoreService.attachListenerOnDocument(
       DB.Collections.values,
       'machine-data',
@@ -82,7 +80,6 @@ onMounted(() => {
       data => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
-         log({ message: `Received '${data.id}' response.`, parent_pid: data.node_parent_pid, pid: data.node_pid });
          isPiAlive.value = true;
       },
       log);
