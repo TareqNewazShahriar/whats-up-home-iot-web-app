@@ -128,9 +128,16 @@ function create(collectionName: string, data: any, docId?: string): Promise<stri
 
 function update(collectionName: string, docId: string, data: any): Promise<null> {
    return new Promise((resolve, reject) => {
-      updateDoc(doc(_db, collectionName, docId), data)
-         .then(() => resolve(null))
-         .catch(error => reject({ msg: `Error on updating a record in ${collectionName}, ID: ${docId}.`, error: error }));
+      try {
+         console.log('woooo', new Date());
+         updateDoc(doc(_db, collectionName, docId), data)
+            .then(() => resolve(null))
+            .catch(error => reject({ msg: `Error on updating a record in ${collectionName}, ID: ${docId}.`, error: error }));
+      }
+      catch (error) {
+         reject({ msg: `Error from update try-catch. Collection ${collectionName}, ID: ${docId}.`, error: error })
+      }
+      
    });
 }
 
