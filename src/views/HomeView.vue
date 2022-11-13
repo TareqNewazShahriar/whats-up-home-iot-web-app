@@ -118,7 +118,9 @@ onMounted(() => {
 
 <template>
    <div>
-      <h1>Whats Up Home IoT (Client)</h1>
+      <div class="d-flex justify-end">
+         <v-icon :color="isPiAlive ? 'green-darken-1' : 'gray'">mdi-checkbox-blank-circle</v-icon>
+      </div>
       <div class="card-list my-8">
          <v-card env>
             <v-card-item>
