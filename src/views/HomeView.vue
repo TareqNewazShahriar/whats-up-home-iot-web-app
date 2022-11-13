@@ -57,7 +57,7 @@ function log(data) {
    data.browser = navigator.userAgent;
    logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
 
-   firestoreService.create(DB.Collections.logs, data, new Date().toJSON())
+   firestoreService.create(DB.Collections.logs, data, `${new Date().toJSON()}~`)
       .catch(error => { logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
 }
 
