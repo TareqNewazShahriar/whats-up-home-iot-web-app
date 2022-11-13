@@ -1,10 +1,10 @@
-import { initializeApp, FirebaseError } from 'firebase/app';
+import { initializeApp } from 'firebase/app';
 import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, CollectionReference, DocumentSnapshot, type DocumentData, setDoc, DocumentReference } from 'firebase/firestore';
 
 const DB = {
    Collections: { values: 'values', faces: 'faces', logs: 'logs' },
    Roles: { programmer: 'programmer', user: 'user' },
-   state: { added:'added', modified:'modified', removed:'removed' }
+   state: { added: 'added', modified: 'modified', removed: 'removed' }
 };
 
 const firebaseConfig = {
@@ -23,10 +23,10 @@ const _app = initializeApp(firebaseConfig);
 const _db = getFirestore(_app);
 
 
-function getCollection(collectionName:string, field?:string, operator?:WhereFilterOp, val?:any) : Promise<any[]> {
+function getCollection(collectionName: string, field?: string, operator?: WhereFilterOp, val?: any): Promise<any[]> {
    return new Promise((resolve, reject) => {
       let q;
-      if(field && operator && val)
+      if (field && operator && val)
          q = query(collection(_db, collectionName), where(field, operator!, val));
       else
          q = collection(_db, collectionName);
@@ -51,7 +51,7 @@ function getCollection(collectionName:string, field?:string, operator?:WhereFilt
    immediately with state 'added' for all matching items.
    As of Oct 22, Node.js implementation of firesotre SDK doesn't have pendingWrite feature.
  */
-function getCollectionWithListener(collectionName:string, field:string, operator:WhereFilterOp, val:any, onChange:(response:any) => void) : any {
+function getCollectionWithListener(collectionName: string, field: string, operator: WhereFilterOp, val: any, onChange: (response: any) => void): any {
    const q = query(collection(_db, collectionName), where(field, operator, val));
    const unsubscribe = onSnapshot(q,
       querySnapshot => {
@@ -61,23 +61,23 @@ function getCollectionWithListener(collectionName:string, field:string, operator
             data.id = res.doc.id;
             list.push({ state: res.type, doc: data });
          });
-         onChange({ success: true, data: list, pending: querySnapshot.metadata.hasPendingWrites});
+         onChange({ success: true, data: list, pending: querySnapshot.metadata.hasPendingWrites });
       },
       err => {
-         onChange({ success: false, errorMessage: `Error occurred on ${collectionName} listener. [${err.message}]`});
+         onChange({ success: false, errorMessage: `Error occurred on ${collectionName} listener. [${err.message}]` });
       }
    );
 
    return unsubscribe;
 }
-   
-function getById(collectionName:string, docId:string):Promise<any> {
+
+function getById(collectionName: string, docId: string): Promise<any> {
    return new Promise((resolve, reject) => {
       const docRef = doc(_db, collectionName, docId);
       getDoc(docRef)
          .then(docSpapshot => {
             let data = null;
-            if(docSpapshot.exists()) {
+            if (docSpapshot.exists()) {
                data = docSpapshot.data();
                data.id = docSpapshot.id;
             }
@@ -94,14 +94,14 @@ function getById(collectionName:string, docId:string):Promise<any> {
    Single document binder doesn't have a stete (type) porperty.
    As of Oct 22, Node.js implementation of firesotre SDK doesn't have pendingWrite feature.
 */
-function attachListenerOnDocument(collectionName:string, docId:string, skipFirst:boolean|undefined, onChange:Function, onError:Function) :any {
+function attachListenerOnDocument(collectionName: string, docId: string, skipFirst: boolean | undefined, onChange: Function, onError: Function): any {
    const unsub = onSnapshot(doc(_db, collectionName, docId),
       (doc) => {
-         if(skipFirst === true) {
+         if (skipFirst === true) {
             skipFirst = undefined;
             return;
          }
-         
+
          onChange(prepareTheDoc(doc));
       },
       error => onError({ message: `Error occurred on document listener. Collection: ${collectionName}, ID: ${docId}.`, error: toJsonObject(error) }));
@@ -109,19 +109,24 @@ function attachListenerOnDocument(collectionName:string, docId:string, skipFirst
    return unsub;
 }
 
-function create(collectionName:string, data:any, docId?:string):Promise<string> {
+function create(collectionName: string, data: any, docId?: string): Promise<string> {
    return new Promise((resolve, reject) => {
-      const promise = docId ?
-         setDoc(doc(_db, collectionName, docId!), data) :
-         addDoc(collection(_db, collectionName), data);
+      try {
+         const promise = docId ?
+            setDoc(doc(_db, collectionName, docId!), data) :
+            addDoc(collection(_db, collectionName), data);
 
-      promise
-         .then((docRef:any) => { resolve(docRef ? docRef.id : ''); })
-         .catch((error:any) => { reject({ message: `Error occurred while creating document. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error) }); });
+         promise
+            .then((docRef: any) => { resolve(docRef ? docRef.id : ''); })
+            .catch((error: any) => { reject({ message: `Error occurred while creating document. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error) }); });
+      }
+      catch (error:any) {
+         reject({ message: `Error occurred while setting document for creating. [collection: ${collectionName}, id: '${docId}', doc: ${JSON.stringify(data)}]`, error: toJsonObject(error) });
+      }
    });
 }
 
-function update(collectionName:string, docId:string, data:any):Promise<null> {
+function update(collectionName: string, docId: string, data: any): Promise<null> {
    return new Promise((resolve, reject) => {
       updateDoc(doc(_db, collectionName, docId), data)
          .then(() => resolve(null))
@@ -135,8 +140,8 @@ timestamp fields with every doc (js):
   _createTime: Timestamp { _seconds: 1667036376, _nanoseconds: 570482000 },
   _updateTime: Timestamp { _seconds: 1667036376, _nanoseconds: 570482000 }
 */
-function prepareTheDoc(doc:DocumentSnapshot<DocumentData>) {
-   const document:any = doc.data();
+function prepareTheDoc(doc: DocumentSnapshot<DocumentData>) {
+   const document: any = doc.data();
    document.id = doc.id;
    // document._readTime = doc._readTime.toDate();
    // document._createTime = doc._createTime.toDate();
@@ -152,7 +157,7 @@ function prepareTheDoc(doc:DocumentSnapshot<DocumentData>) {
    return document;
 }
 
-function toJsonObject(obj:object) :object {
+function toJsonObject(obj: object): object {
    return JSON.parse(JSON.stringify(obj, Object.keys(obj)));
 }
 
