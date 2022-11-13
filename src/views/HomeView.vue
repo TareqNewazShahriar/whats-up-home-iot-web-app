@@ -36,7 +36,7 @@ function changeBulbControlMode(e) {
 }
 
 function changeBulbState(e) {
-   logData.value.push(`Changing bulbState. ${machineData.bulbState}`);
+   log({message: `Changing bulbState. ${machineData.bulbState}`}, true);
    if (confirm('Change bulb state?') === true) {
       firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
       bulbStateRequested.value = true;
@@ -53,17 +53,19 @@ function commandToReboot() {
    }
 }
 
-function log(data) {
+function log(data, skipStoring) {
    data.browser = navigator.userAgent;
    logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
 
-   firestoreService.create(DB.Collections.logs, data, `${new Date().toJSON()}~`)
-      .catch(error => { logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
+   if(!skipStoring) {
+      firestoreService.create(DB.Collections.logs, data, `${new Date().toJSON()}~`)
+         .catch(error => { logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
+   }
 }
 
 function requestMachineData() {
    firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
-   logData.value.push(`[${new Date().toUTCString()}] Machine data request sent.`)
+   log({message: `Machine data request sent.`}, true);
 
    _requestedDataRef = setTimeout(() => {
       log({message: `Warn: Didn't get any response from Raspberry PI.`});
@@ -81,6 +83,7 @@ onMounted(() => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
          isPiAlive.value = true;
+         log({message: 'Machine data response received.'}, true);
       },
       log);
 
@@ -89,7 +92,7 @@ onMounted(() => {
       'bulb-control-mode__from-machine',
       true,
       () => {
-         logData.value.push('got bulb-control-mode__from-machine')
+         log({message: 'bulb-control-mode__from-machine resopnse received.'}, true);
          bulbControlModeRequested.value = false;
       },
       errorData => {
@@ -101,7 +104,7 @@ onMounted(() => {
       'bulb-state__from-machine',
       true,
       (doc) => {
-         logData.value.push('got bulb-state__from-machine');
+         log({message: 'bulb-state__from-machine response received.'}, true);
          bulbStateRequested.value = false;
          machineData.bulbState = doc.value;
       },
