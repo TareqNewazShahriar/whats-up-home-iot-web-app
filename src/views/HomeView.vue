@@ -26,7 +26,7 @@ const communicationAlive = ref(false);
 
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode }).catch(log);
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode, url: window.location.href, browser: navigator.userAgent }).catch(log);
       bulbControlModeRequested.value = true;
    }
    else {
@@ -38,7 +38,7 @@ function changeBulbControlMode(e) {
 function changeBulbState(e) {
    log({message: `Changing bulbState. ${machineData.bulbState}`}, true);
    if (confirm('Change bulb state?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState, url: window.location.href, browser: navigator.userAgent }).catch(log);
       bulbStateRequested.value = true;
    }
    else {
@@ -49,17 +49,21 @@ function changeBulbState(e) {
 
 function commandToReboot() {
    if (confirm('Confirm reboot?') == true) {
-      firestoreService.update(DB.Collections.values, 'reboot__from-client', { value: new Date() }).catch(log);
+      firestoreService.update(DB.Collections.values, 'reboot__from-client', { value: new Date(), url: window.location.href, browser: navigator.userAgent }).catch(log);
    }
 }
 
 function log(data, skipStoring) {
-   data.browser = navigator.userAgent;
-   logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(data)}`);
+   let time = new Date();
+   time.setMinutes(time.getMinutes() - time.getTimezoneOffset());
+
+   logData.value.push(`[${time.toJSON()}] ${JSON.stringify(data)}`);
 
    if(!skipStoring) {
-      firestoreService.create(DB.Collections.logs, data, `${new Date().toJSON()}~`)
-         .catch(error => { logData.value.push(`[${new Date().toJSON()}] ${JSON.stringify(error)}`); });
+      data.browser = navigator.userAgent;
+      
+      firestoreService.create(DB.Collections.logs, data, `${time.toJSON()}`)
+         .catch(error => { logData.value.push(`${JSON.stringify(error)} [${time.toJSON()}]`); });
    }
 }
 
@@ -68,13 +72,15 @@ function requestMachineData() {
    log({message: `Machine data request sent.`}, true);
 
    _requestedDataRef = setTimeout(() => {
-      log({message: `Warn: Didn't get any machine-data response.`});
+      log({message: `Warn: Didn't get machine-data response.`});
       communicationAlive.value = false;
    },
    3000);
 }
 
 onMounted(() => {
+   log({message: 'Vue3 mounted.'}, true);
+   
    firestoreService.attachListenerOnDocument(
       DB.Collections.values,
       'machine-data',
