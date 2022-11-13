@@ -36,7 +36,7 @@ function changeBulbControlMode(e) {
 }
 
 function changeBulbState(e) {
-   console.log(machineData.bulbState);
+   logData.value.push(`Changing bulbState. ${machineData.bulbState}`);
    if (confirm('Change bulb state?') === true) {
       firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState }).catch(log);
       bulbStateRequested.value = true;
@@ -89,7 +89,7 @@ onMounted(() => {
       'bulb-control-mode__from-machine',
       true,
       () => {
-         console.log('got bulb-control-mode__from-machine')
+         logData.value.push('got bulb-control-mode__from-machine')
          bulbControlModeRequested.value = false;
       },
       errorData => {
@@ -101,7 +101,7 @@ onMounted(() => {
       'bulb-state__from-machine',
       true,
       (doc) => {
-         console.log('got bulb-state__from-machine')
+         logData.value.push('got bulb-state__from-machine');
          bulbStateRequested.value = false;
          machineData.bulbState = doc.value;
       },
