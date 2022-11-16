@@ -62,7 +62,7 @@ function log(data, skipStoring) {
    if(!skipStoring) {
       data.browser = navigator.userAgent;
       
-      firestoreService.create(DB.Collections.logs, data, `${time.toJSON()}`)
+      firestoreService.create(DB.Collections.logs, data, `${time.toJSON()}~`)
          .catch(error => { logData.value.push(`${JSON.stringify(error)} [${time.toJSON()}]`); });
    }
 }
