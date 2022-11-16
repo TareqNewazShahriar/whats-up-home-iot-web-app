@@ -88,7 +88,7 @@ onMounted(() => {
       data => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
-         communicationAlive.value = true;
+         communicationAlive.value = machineData.thermistor.success & machineData.photoresistor.success ? true : null;
          log({message: 'Machine data response received.'}, true);
       },
       log);
@@ -128,7 +128,7 @@ onMounted(() => {
 <template>
    <div>
       <div class="d-flex justify-end">
-         <v-icon title="Communication status with Raspberry PI" :color="communicationAlive ? 'green-darken-1' : 'gray'">mdi-checkbox-blank-circle</v-icon>
+         <v-icon title="Communication status with Raspberry PI" :color="communicationAlive ? 'green-darken-1' : (communicationAlive === null ? 'red' : 'grey')">mdi-checkbox-blank-circle</v-icon>
       </div>
       <div class="card-list my-8">
          <v-card env>
@@ -138,7 +138,7 @@ onMounted(() => {
             <v-card-text>
                <div>
                   <strong>Room Temperature</strong>
-                  {{ machineData.thermistor.success ? machineData.thermistor.value.toFixed(1) : null }}
+                  {{ machineData.thermistor.success ? `${machineData.thermistor.value.toFixed(1)}&deg;C` : null }}
                </div>
                <div class="d-flex">
                   <strong class="text-no-wrap mr-2">Room Light<br />Condition</strong>
