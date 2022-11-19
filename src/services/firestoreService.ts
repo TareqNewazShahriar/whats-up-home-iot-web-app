@@ -51,7 +51,7 @@ function getCollection(collectionName: string, field?: string, operator?: WhereF
    immediately with state 'added' for all matching items.
    As of Oct 22, Node.js implementation of firesotre SDK doesn't have pendingWrite feature.
  */
-function getCollectionWithListener(collectionName: string, field: string, operator: WhereFilterOp, val: any, onChange: (response: any) => void): any {
+function attachListenerOnCollection(collectionName: string, field: string, operator: WhereFilterOp, val: any, onChange: (data: any) => void, onError: (errorData: any) => void): any {
    const q = query(collection(_db, collectionName), where(field, operator, val));
    const unsubscribe = onSnapshot(q,
       querySnapshot => {
@@ -61,10 +61,10 @@ function getCollectionWithListener(collectionName: string, field: string, operat
             data.id = res.doc.id;
             list.push({ state: res.type, doc: data });
          });
-         onChange({ success: true, data: list, pending: querySnapshot.metadata.hasPendingWrites });
+         onChange({ docs: list, pending: querySnapshot.metadata.hasPendingWrites });
       },
-      err => {
-         onChange({ success: false, errorMessage: `Error occurred on ${collectionName} listener. [${err.message}]` });
+      error => {
+         onError({ message: `Error occurred on ${collectionName} listener. [${error.message}]`, error: toJsonObject(error) });
       }
    );
 
@@ -170,7 +170,7 @@ function toJsonObject(obj: object): object {
 
 const firestoreService = {
    getCollection,
-   getCollectionWithListener,
+   attachListenerOnCollection,
    getById,
    attachListenerOnDocument,
    create,

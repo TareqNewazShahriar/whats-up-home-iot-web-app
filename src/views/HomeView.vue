@@ -203,8 +203,8 @@ onMounted(() => {
                   </div>
                </div>
                <div>
-                  <label class="font-weight-bold mr-2">Communicating with Raspberry PI?</label>
-                  {{communicationAlive}}
+                  <label class="font-weight-bold mr-2">Communicating with Raspberry Pi?</label>
+                  {{communicationAlive === false ? 'No' : 'Yes'}}
                </div>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
