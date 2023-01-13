@@ -6,6 +6,7 @@ Error.prototype.toJsonString = function () {
    return JSON.stringify(this, Object.getOwnPropertyNames(this));
 }
 
+const Communication_Statuses = { Disconnected: -2, Lost: -1, Loading: 0, Alive: 1, Rebooting: 2 };
 const DATA_INTERVAL = 5 * 60 * 1000;
 var _requestedDataRef;
 
@@ -21,7 +22,7 @@ const machineData = reactive({
 const logData = ref([]);
 const bulbControlModeRequested = ref(false);
 const bulbStateRequested = ref(false);
-const communicationAlive = ref(false);
+const communicationAlive = ref(Communication_Statuses.Loading);
 
 
 function changeBulbControlMode(e) {
@@ -49,6 +50,7 @@ function changeBulbState(e) {
 
 function commandToReboot() {
    if (confirm('Confirm reboot?') == true) {
+      communicationAlive.value = Communication_Statuses.Rebooting;
       firestoreService.update(DB.Collections.values, 'reboot__from-client', { value: new Date(), url: window.location.href, browser: navigator.userAgent }).catch(log);
    }
 }
@@ -68,14 +70,15 @@ function log(data, skipStoring) {
 }
 
 function requestMachineData() {
+   communicationAlive.value = Communication_Statuses.Loading;
    firestoreService.update(DB.Collections.values, 'machine-data-request', { value: new Date() }).catch(log);
    log({message: `Machine data request sent.`}, true);
 
    _requestedDataRef = setTimeout(() => {
       log({message: `Warn: Didn't get machine-data response.`});
-      communicationAlive.value = false;
+      communicationAlive.value = Communication_Statuses.Lost;
    },
-   3000);
+   10000);
 }
 
 onMounted(() => {
@@ -88,7 +91,7 @@ onMounted(() => {
       data => {
          clearTimeout(_requestedDataRef);
          Object.assign(machineData, data);
-         communicationAlive.value = machineData.thermistor.success & machineData.photoresistor.success ? true : null;
+         communicationAlive.value = Communication_Statuses.Alive;
          log({message: 'Machine data response received.'}, true);
       },
       log);
@@ -127,10 +130,10 @@ onMounted(() => {
 
 <template>
    <div>
-      <div class="d-flex justify-end">
-         <v-icon title="Communication status with Raspberry PI" :color="communicationAlive ? 'green-darken-1' : (communicationAlive === null ? 'red' : 'grey')">mdi-checkbox-blank-circle</v-icon>
+      <div data-header class="d-flex justify-end">
+         <v-icon title="Communication status with Raspberry PI" :class="Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]">mdi-checkbox-blank-circle</v-icon>
       </div>
-      <div class="card-list my-8">
+      <div data-cards class="card-list my-8">
          <v-card env>
             <v-card-item>
                <v-card-title>Environment</v-card-title>
@@ -203,8 +206,8 @@ onMounted(() => {
                   </div>
                </div>
                <div>
-                  <label class="font-weight-bold mr-2">Communicating with Raspberry Pi?</label>
-                  {{communicationAlive === false ? 'No' : 'Yes'}}
+                  <label class="font-weight-bold mr-2">Communication Alive?</label>
+                  {{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}
                </div>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
@@ -245,4 +248,18 @@ onMounted(() => {
    padding: 5px;
    overflow: auto;
 }
+
+.v-icon.Disconnected {
+   color: black;
+}
+.v-icon.Lost {
+   color: rgb(122, 120, 120);
+}
+.v-icon.Loading {
+   color: rgb(183, 183, 98);
+}
+.v-icon.Alive {
+   color: rgb(83, 155, 83);
+}
+
 </style>
