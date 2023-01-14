@@ -136,7 +136,7 @@ onMounted(() => {
       <div data-cards class="card-list my-8">
          <v-card env>
             <v-card-item>
-               <v-card-title>Environment</v-card-title>
+               <v-card-title>Room Environment</v-card-title>
             </v-card-item>
             <v-card-text>
                <div>
@@ -148,12 +148,12 @@ onMounted(() => {
                   <span>
                      {{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
                      <br />
-                     <div class="mt-2">[Hint: {{ machineData.photoresistorStatus }}]</div>
+                     <div class="mt-1">[Hint: {{ machineData.photoresistorStatus }}]</div>
                   </span>
                </div>
-               <div class="mt-4 d-flex align-center">
+               <div class="d-flex align-center">
                   <label class="font-weight-bold">Bulb Control Mode</label>:
-                  <span class="d-flex align-center ml-3" style="gap: 8px">
+                  <span class="ml-2 d-flex align-center" style="gap: 8px">
                      Sensor
                      <v-switch
                         density="compact"
@@ -165,7 +165,7 @@ onMounted(() => {
                      Manual
                   </span>
                </div>
-               <div class="mt-4 d-flex align-center">
+               <div class="d-flex align-center">
                   <label class="mr-2 font-weight-bold">Bulb State</label>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
                      OFF
@@ -230,6 +230,11 @@ onMounted(() => {
 .card-list {
    display: grid;
    row-gap: 30px;
+}
+
+div[env] .v-card-text > div {
+   border-top: 1px silver solid;
+   padding: 10px 0;
 }
 
 @media (min-width: 600px) {
