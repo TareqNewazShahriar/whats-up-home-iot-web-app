@@ -145,11 +145,18 @@ onMounted(() => {
                </div>
                <div class="d-flex">
                   <strong class="text-no-wrap mr-2">Room Light<br />Condition</strong>
-                  <span>
-                     {{ machineData.photoresistor.success ? machineData.photoresistor.value : null }}
-                     <br />
-                     <div class="mt-1">[Hint: {{ machineData.photoresistorStatus }}]</div>
-                  </span>
+                  <div class="d-flex align-center" style="width: 100%;">
+                     Dark
+                     <v-slider
+                        min="1"
+                        max="255"
+                        readonly
+                        thumb-label
+                        track-color="blue-darken-3"
+                        v-model="machineData.photoresistor.value"
+                      ></v-slider>
+                     Light
+                  </div>
                </div>
                <div class="d-flex align-center">
                   <label class="font-weight-bold">Bulb Control Mode</label>:
