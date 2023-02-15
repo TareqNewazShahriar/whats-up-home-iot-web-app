@@ -5,6 +5,6 @@ Web app for home IoT using Raspberry Pi
 
 
 ## Post Build
-To server the app from a directory (like now it is served from `dist` directory), after app build, change coulple of paths:
+To serve the app from a directory (like now it is served from `dist` directory), after app build, change coulple of paths:
 1. index.html: remove starting `/` from favicon, css, js file url.
 2. index.&lt;hash&gt;.css: find and replace `url(assets/` with `url(`.
