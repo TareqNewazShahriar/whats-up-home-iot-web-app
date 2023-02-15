@@ -6,7 +6,7 @@ Error.prototype.toJsonString = function () {
    return JSON.stringify(this, Object.getOwnPropertyNames(this));
 }
 
-const Communication_Statuses = { Disconnected: -2, Lost: -1, Loading: 0, Alive: 1, Rebooting: 2 };
+const Communication_Statuses = { Disconnected: -2, Communication_Lost: -1, Loading: 0, Alive: 1, Rebooting: 2 };
 const DATA_INTERVAL = 5 * 60 * 1000;
 var _requestedDataRef;
 
@@ -23,7 +23,6 @@ const logData = ref([]);
 const bulbControlModeRequested = ref(false);
 const bulbStateRequested = ref(false);
 const communicationAlive = ref(Communication_Statuses.Loading);
-
 
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
@@ -75,8 +74,8 @@ function requestMachineData() {
    log({message: `Machine data request sent.`}, true);
 
    _requestedDataRef = setTimeout(() => {
-      log({message: `Warn: Didn't get machine-data response.`});
-      communicationAlive.value = Communication_Statuses.Lost;
+      log({message: `Warn: Didn't get machine-data response within a specific time.`});
+      communicationAlive.value = Communication_Statuses.Disconnected;
    },
    10000);
 }
@@ -130,7 +129,8 @@ onMounted(() => {
 
 <template>
    <div>
-      <div data-header class="d-flex justify-end">
+      <div data-header class="d-flex justify-end align-center">
+         {{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}
          <v-icon title="Communication status with Raspberry PI" :class="Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]">mdi-checkbox-blank-circle</v-icon>
       </div>
       <div data-cards class="card-list my-8">
@@ -143,19 +143,19 @@ onMounted(() => {
                   <strong>Room Temperature</strong>
                   {{ machineData.thermistor.success ? `${machineData.thermistor.value.toFixed(1)}&deg;C` : null }}
                </div>
-               <div class="d-flex">
-                  <strong class="text-no-wrap mr-2">Room Light<br />Condition</strong>
-                  <div class="d-flex align-center" style="width: 100%;">
-                     Dark
+               <div>
+                  <strong class="text-no-wrap mr-2">Room Light</strong>
+                  <div class="d-flex align-start" style="width: 100%; height: 70px;">
                      <v-slider
-                        min="1"
+                        :ticks="{ 187: 'Good', 200: 'Medium', 217: 'Light Dark', 240: 'Dark' }"
+                        tick-size="7"
+                        show-ticks="always"
+                        min="155"
                         max="255"
-                        readonly
                         thumb-label
-                        track-color="blue-darken-3"
-                        v-model="machineData.photoresistor.value"
+                        track-fill-color="blue-darken-3"
+                        :model-value="machineData.photoresistor.value"
                       ></v-slider>
-                     Light
                   </div>
                </div>
                <div class="d-flex align-center">
@@ -212,10 +212,6 @@ onMounted(() => {
                      {{ machineData.time ? machineData.time.toUTCString() : null }}
                   </div>
                </div>
-               <div>
-                  <label class="font-weight-bold mr-2">Communication Alive?</label>
-                  {{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}
-               </div>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </v-card-text>
@@ -234,6 +230,14 @@ onMounted(() => {
 </template>
 
 <style>
+.v-slider-track__tick-label {
+   font-size: 10px;
+   writing-mode: vertical-rl;
+   padding-top: 5px;
+}
+</style>
+
+<style scoped>
 .card-list {
    display: grid;
    row-gap: 30px;
@@ -264,7 +268,7 @@ div[env] .v-card-text > div {
 .v-icon.Disconnected {
    color: black;
 }
-.v-icon.Lost {
+.v-icon.Communication_Lost {
    color: rgb(122, 120, 120);
 }
 .v-icon.Loading {
