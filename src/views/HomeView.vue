@@ -145,15 +145,16 @@ onMounted(() => {
                </div>
                <div>
                   <strong class="text-no-wrap mr-2">Room Light</strong>
-                  <div class="d-flex align-start" style="width: 100%; height: 70px;">
+                  <div class="d-flex align-start" style="width: 100%; height: 90px;">
                      <v-slider
-                        :ticks="{ 187: 'Good', 200: 'Medium', 217: 'Light Dark', 240: 'Dark' }"
+                        :ticks="{ 187: 'Good Light', 200: 'Medium Light', 210: 'Light Dark', 217: 'Medium Dark', 235: 'Dark', 255: 'Blackhole' }"
                         tick-size="7"
                         show-ticks="always"
                         min="155"
                         max="255"
                         thumb-label
-                        track-fill-color="blue-darken-3"
+                        track-fill-color="blue-darken-1"
+                        readonly
                         :model-value="machineData.photoresistor.value"
                       ></v-slider>
                   </div>
@@ -234,6 +235,7 @@ onMounted(() => {
    font-size: 10px;
    writing-mode: vertical-rl;
    padding-top: 5px;
+   margin-left: 3px;
 }
 </style>
 
