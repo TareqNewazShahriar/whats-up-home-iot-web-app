@@ -26,7 +26,7 @@ onMounted(() => {
       </v-main>
       <hr class="my-5" style="color: silver;">
       <footer>
-         <v-btn variant="outlined" @click="signin">Family member login</v-btn>
+         <v-btn icon="mdi-shield-home" variant="flat" @click="signin"></v-btn>
       </footer>
    </v-app>
 </template>
