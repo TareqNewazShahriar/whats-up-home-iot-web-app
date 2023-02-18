@@ -26,8 +26,9 @@ const communicationAlive = ref(Communication_Statuses.Loading);
 
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode, url: window.location.href, browser: navigator.userAgent }).catch(log);
       bulbControlModeRequested.value = true;
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode, url: window.location.href, browser: navigator.userAgent })
+         .catch(errorData => { bulbControlModeRequested.value = false; log(errorData)});
    }
    else {
       e.preventDefault();
@@ -38,8 +39,9 @@ function changeBulbControlMode(e) {
 function changeBulbState(e) {
    log({message: `Changing bulbState. ${machineData.bulbState}`}, true);
    if (confirm('Change bulb state?') === true) {
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState, url: window.location.href, browser: navigator.userAgent }).catch(log);
       bulbStateRequested.value = true;
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState, url: window.location.href, browser: navigator.userAgent })
+         .catch(errorData => { bulbStateRequested.value = false; log(errorData)});
    }
    else {
       e.preventDefault();
@@ -160,8 +162,11 @@ onMounted(() => {
                   </div>
                </div>
                <div class="d-flex align-center">
-                  <label class="font-weight-bold">Bulb Control Mode</label>:
+                  <label class="font-weight-bold">
+                     Bulb Control Mode
+                  </label>:
                   <span class="ml-2 d-flex align-center" style="gap: 8px">
+                     <v-icon icon="mdi-lock" size="xsmall"></v-icon>
                      Sensor
                      <v-switch
                         density="compact"
@@ -176,6 +181,7 @@ onMounted(() => {
                <div class="d-flex align-center">
                   <label class="mr-2 font-weight-bold">Bulb State</label>:
                   <span class="d-flex align-center ml-3" style="gap: 8px">
+                     <v-icon icon="mdi-lock" size="xsmall"></v-icon>
                      OFF
                      <v-switch
                         density="compact"
@@ -219,12 +225,15 @@ onMounted(() => {
                      </td>
                   </tr>
                   <tr>
-                     <td class="font-weight-bold">Process ID</td>
+                     <td class="font-weight-bold">NodeJS PID</td>
                      <td>{{ machineData.node_pid }}</td>
                   </tr>
                </table>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
-               <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
+               <v-btn variant="tonal" @click="commandToReboot">
+                  Reboot Raspberry PI
+                  <v-icon icon="mdi-lock" size="xsmall" class="ml-1"></v-icon>
+               </v-btn>
             </v-card-text>
          </v-card>
 
@@ -269,10 +278,9 @@ div[env] .v-card-text > div {
 }
 
 .console {
-   background-color: black;
-   border: inset black;
+   background-color: whitesmoke;
    bottom: 0;
-   color: whitesmoke;
+   color: black;
    padding: 5px;
    overflow: auto;
 }

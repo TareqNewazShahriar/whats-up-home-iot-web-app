@@ -1,5 +1,15 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from 'vue-router'
+import { firestoreService } from '@/services/firestoreService'
+import { onMounted } from 'vue';
+
+function signin() {
+   firestoreService.googleSignIn().then(() => {}).catch(console.log);
+}
+
+onMounted(() => {
+   firestoreService.checkForRedirectSignIn().then().catch();
+});
 </script>
 
 <template>
@@ -10,8 +20,13 @@ import { RouterLink, RouterView } from 'vue-router'
             <RouterLink to="/">Home</RouterLink>
          </nav>
       </header>
+      <hr class="my-5" style="color: silver;">
       <v-main>
          <RouterView></RouterView>
       </v-main>
+      <hr class="my-5" style="color: silver;">
+      <footer>
+         <v-btn variant="outlined" @click="signin">Family member login</v-btn>
+      </footer>
    </v-app>
 </template>
