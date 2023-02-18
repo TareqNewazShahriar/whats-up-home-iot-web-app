@@ -75,7 +75,7 @@ function requestMachineData() {
 
    _requestedDataRef = setTimeout(() => {
       log({message: `Warn: Didn't get machine-data response within a specific time.`});
-      communicationAlive.value = Communication_Statuses.Disconnected;
+      communicationAlive.value = Communication_Statuses.Communication_Lost;
    },
    10000);
 }
@@ -204,15 +204,25 @@ onMounted(() => {
             <v-card-item>
                <v-card-title>Actions & Misc</v-card-title>
             </v-card-item>
-            <v-card-text class="d-flex flex-column mt-3" style="row-gap:20px;">
-               <div class="d-flex">
-                  <label class="mr-3 font-weight-bold">Last checked</label>
-                  <div>
-                     {{ machineData.time ? machineData.time.toLocaleString() : null }}
-                     <br/>
-                     {{ machineData.time ? machineData.time.toUTCString() : null }}
-                  </div>
-               </div>
+            <v-card-text class="mt-3 d-flex flex-column" style="row-gap:20px;">
+               <table>
+                  <tr>
+                     <td class="font-weight-bold">Communication Status</td>
+                     <td>{{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}</td>
+                  </tr>
+                  <tr>
+                     <td class="font-weight-bold">Last checked</td>
+                     <td>
+                        Machine Time: {{ machineData.time ? machineData.time.toLocaleString() : null }}
+                        <br>
+                        GMT: {{ machineData.time ? machineData.time.toUTCString() : null }}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td class="font-weight-bold">Process ID</td>
+                     <td>{{ machineData.node_pid }}</td>
+                  </tr>
+               </table>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </v-card-text>
@@ -279,5 +289,4 @@ div[env] .v-card-text > div {
 .v-icon.Alive {
    color: rgb(83, 155, 83);
 }
-
 </style>
