@@ -8,13 +8,13 @@ const DB = {
 };
 
 const firebaseConfig = {
-   apiKey: 'AIzaSyAOBHpWDtkONu6zMlFnh4Mo0iRvGhYLamw',
-   authDomain: 'whats-up-home-iot-backup.firebaseapp.com',
-   projectId: 'whats-up-home-iot-backup',
-   storageBucket: 'whats-up-home-iot-backup.appspot.com',
-   messagingSenderId: '446719404775',
-   appId: '1:446719404775:web:23724f5bd9e0b93c079042',
-   measurementId: 'G-LX4DH32RE4'
+   apiKey: 'AIzaSyCc-RLcg0UhWmmXc8Lggl-LnceAr1UnkYU',
+  authDomain: 'whats-up-home-iot.firebaseapp.com',
+  projectId: 'whats-up-home-iot',
+  storageBucket: 'whats-up-home-iot.appspot.com',
+  messagingSenderId: '939481304082',
+  appId: '1:939481304082:web:9e67ea9e239b8c4b1d5ccb',
+  measurementId: 'G-LSMFWTCFJ0'
  };
 
 // Initialize Firebase

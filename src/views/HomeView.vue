@@ -75,7 +75,7 @@ function requestMachineData() {
 
    _requestedDataRef = setTimeout(() => {
       log({message: `Warn: Didn't get machine-data response within a specific time.`});
-      communicationAlive.value = Communication_Statuses.Disconnected;
+      communicationAlive.value = Communication_Statuses.Communication_Lost;
    },
    10000);
 }
@@ -145,15 +145,16 @@ onMounted(() => {
                </div>
                <div>
                   <strong class="text-no-wrap mr-2">Room Light</strong>
-                  <div class="d-flex align-start" style="width: 100%; height: 70px;">
+                  <div class="d-flex align-start" style="width: 100%; height: 90px;">
                      <v-slider
-                        :ticks="{ 187: 'Good', 200: 'Medium', 217: 'Light Dark', 240: 'Dark' }"
+                        :ticks="{ 187: 'Good Light', 200: 'Medium Light', 210: 'Light Dark', 217: 'Medium Dark', 235: 'Dark', 255: 'Blackhole' }"
                         tick-size="7"
                         show-ticks="always"
                         min="155"
                         max="255"
                         thumb-label
-                        track-fill-color="blue-darken-3"
+                        track-fill-color="blue-darken-1"
+                        readonly
                         :model-value="machineData.photoresistor.value"
                       ></v-slider>
                   </div>
@@ -203,15 +204,25 @@ onMounted(() => {
             <v-card-item>
                <v-card-title>Actions & Misc</v-card-title>
             </v-card-item>
-            <v-card-text class="d-flex flex-column mt-3" style="row-gap:20px;">
-               <div class="d-flex">
-                  <label class="mr-3 font-weight-bold">Last checked</label>
-                  <div>
-                     {{ machineData.time ? machineData.time.toLocaleString() : null }}
-                     <br/>
-                     {{ machineData.time ? machineData.time.toUTCString() : null }}
-                  </div>
-               </div>
+            <v-card-text class="mt-3 d-flex flex-column" style="row-gap:20px;">
+               <table>
+                  <tr>
+                     <td class="font-weight-bold">Communication Status</td>
+                     <td>{{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}</td>
+                  </tr>
+                  <tr>
+                     <td class="font-weight-bold">Last checked</td>
+                     <td>
+                        Machine Time: {{ machineData.time ? machineData.time.toLocaleString() : null }}
+                        <br>
+                        GMT: {{ machineData.time ? machineData.time.toUTCString() : null }}
+                     </td>
+                  </tr>
+                  <tr>
+                     <td class="font-weight-bold">Process ID</td>
+                     <td>{{ machineData.node_pid }}</td>
+                  </tr>
+               </table>
                <v-btn variant="tonal" @click="requestMachineData">Request Machine Data</v-btn>
                <v-btn variant="tonal" @click="commandToReboot">Reboot Raspberry Pi</v-btn>
             </v-card-text>
@@ -234,6 +245,7 @@ onMounted(() => {
    font-size: 10px;
    writing-mode: vertical-rl;
    padding-top: 5px;
+   margin-left: 3px;
 }
 </style>
 
@@ -277,5 +289,4 @@ div[env] .v-card-text > div {
 .v-icon.Alive {
    color: rgb(83, 155, 83);
 }
-
 </style>
