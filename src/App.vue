@@ -15,7 +15,7 @@ onMounted(() => {
 <template>
    <v-app :class="$vuetify.display.xs? 'pa-2' : 'pa-7'">
       <header>
-         <h1>Whats Up Home IoT (Client)</h1>
+         <h1>Home IoT (Web App)</h1>
          <nav v-if="false">
             <RouterLink to="/">Home</RouterLink>
          </nav>
