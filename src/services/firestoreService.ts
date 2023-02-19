@@ -1,14 +1,15 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, CollectionReference, DocumentSnapshot, type DocumentData, setDoc, DocumentReference } from 'firebase/firestore';
+import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, DocumentSnapshot, type DocumentData, setDoc } from 'firebase/firestore';
+import { initializeAuth, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, browserLocalPersistence, browserPopupRedirectResolver, browserSessionPersistence } from 'firebase/auth';
 
 const DB = {
-   Collections: { values: 'values', faces: 'faces', logs: 'logs' },
-   Roles: { programmer: 'programmer', user: 'user' },
+   Collections: { values: 'values', logs: 'logs', roles: 'roles' },
+   Roles: { family: 'family' },
    state: { added: 'added', modified: 'modified', removed: 'removed' }
 };
 
 const firebaseConfig = {
-   apiKey: 'AIzaSyCc-RLcg0UhWmmXc8Lggl-LnceAr1UnkYU',
+  apiKey: 'AIzaSyCc-RLcg0UhWmmXc8Lggl-LnceAr1UnkYU',
   authDomain: 'whats-up-home-iot.firebaseapp.com',
   projectId: 'whats-up-home-iot',
   storageBucket: 'whats-up-home-iot.appspot.com',
@@ -21,7 +22,7 @@ const firebaseConfig = {
 const _app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
 const _db = getFirestore(_app);
-
+const _auth = initializeAuth(_app, { persistence: [ browserLocalPersistence, browserSessionPersistence ] });
 
 function getCollection(collectionName: string, field?: string, operator?: WhereFilterOp, val?: any): Promise<any[]> {
    return new Promise((resolve, reject) => {
@@ -168,13 +169,129 @@ function toJsonObject(obj: object): object {
 }
 
 
+/*********** Authorization ************/
+
+function registerAuthStateChanged(callback:Function, perpetual:boolean, callerName:string) {
+   try {
+      const unsubscribe = onAuthStateChanged(_auth, (user:any|null) => {
+         //console.log(callerName, `perpetual:`, perpetual); // Don't delete
+         callback(user);
+         if(!perpetual)
+            unsubscribe();
+      },
+      () => {
+         //console.log('state error', error, new Date().toJSON());
+         callback(false);
+      });
+
+      return unsubscribe;
+   }
+   catch (error) {
+      alert('Error occurred while registering to authentication state; but you will still able to contunue to use the App.');
+   }
+}
+
+function googleSignIn(locale?:string) {
+   return new Promise((resolve, reject) => {
+      console.log({GoogleAuthProvider});
+      const _siginProvider = new GoogleAuthProvider();
+      if(locale)
+         _auth.languageCode = locale;
+
+      signInWithRedirect(_auth, _siginProvider, browserPopupRedirectResolver)
+         .then(() => resolve(null))
+         .catch(error => reject(error));
+   });
+}
+
+function signOutTheUser() {
+   new Promise((resolve, reject) => {
+      signOut(_auth)
+         .then(() => resolve(null))
+         .catch(() => reject());
+   });
+}
+
+function isAuthenticated() : Promise<boolean> {
+   return new Promise((resolve, reject) => {
+      try {
+         registerAuthStateChanged((user:any) => resolve(!!user),
+            false,
+            'service > isAuthenticated');
+      }
+      catch (error) {
+         reject(error);
+      }
+   });
+}
+
+function isAuthorized(roleName:string) : Promise<boolean> {
+   return new Promise((resolve, reject) => {
+      registerAuthStateChanged(
+         (user:any|null) => {
+            if(!user)
+               resolve(false);
+            else {
+               getById(DB.Collections.roles, roleName)
+                  .then((data:any) => {
+                     const flag = data ? data.users.includes(user.uid2) : false;
+                     resolve(flag);
+                  })
+                  .catch((err:any) => {
+                     reject(err);
+                  });
+            }
+         },
+         false,
+         'service > isAuthorized');
+   });
+}
+
+function checkForRedirectSignIn() : Promise<any> {
+ return new Promise((resolve, reject) => {
+
+   getRedirectResult(_auth, browserPopupRedirectResolver)
+      .then((result: any|null) => {
+         if (result === null)
+            resolve(null);
+
+         // This gives you a Google Access Token. You can use it to access Google APIs.
+         // const credential: OAuthCredential | null = GoogleAuthProvider.credentialFromResult(result);
+         //const token = credential?.accessToken;
+
+         // The signed-in user info.
+         // const user = result.user;
+
+         resolve(result)
+      })
+      .catch((error) => {
+         // Handle Errors here.
+         const errorCode = error.code;
+         const errorMessage = error.message;
+         // The email of the user's account used.
+         const email = error.email;
+         // The AuthCredential type that was used.
+         //const credential = _siginProvider.credentialFromError(error);
+
+         reject(error);
+         // ...
+      }); // catch
+ }); // new promise
+}
+
 const firestoreService = {
    getCollection,
    attachListenerOnCollection,
    getById,
    attachListenerOnDocument,
    create,
-   update
+   update,
+   registerAuthStateChanged,
+   googleSignIn,
+   signOutTheUser,
+   isAuthenticated,
+   isAuthorized,
+   checkForRedirectSignIn
 };
 
 export { firestoreService, DB };
