@@ -1,10 +1,10 @@
 import { initializeApp } from 'firebase/app';
 import { getFirestore, Timestamp, collection, getDoc, addDoc, updateDoc, query, where, type WhereFilterOp, getDocs, onSnapshot, doc, DocumentSnapshot, type DocumentData, setDoc } from 'firebase/firestore';
-import { onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, initializeAuth, browserLocalPersistence, browserPopupRedirectResolver, browserSessionPersistence } from 'firebase/auth';
+import { initializeAuth, onAuthStateChanged, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, browserLocalPersistence, browserPopupRedirectResolver, browserSessionPersistence } from 'firebase/auth';
 
 const DB = {
-   Collections: { values: 'values', faces: 'faces', logs: 'logs' },
-   Roles: { programmer: 'programmer', user: 'user' },
+   Collections: { values: 'values', logs: 'logs', roles: 'roles' },
+   Roles: { family: 'family' },
    state: { added: 'added', modified: 'modified', removed: 'removed' }
 };
 
@@ -171,17 +171,11 @@ function toJsonObject(obj: object): object {
 
 /*********** Authorization ************/
 
-function registerAuthStateChanged(callback:Function, perpetual:boolean /*, callerName:string*/) {
+function registerAuthStateChanged(callback:Function, perpetual:boolean, callerName:string) {
    try {
-      const unsubscribe = onAuthStateChanged(_auth, (user:User|null) => {
-         let userData:UserData|null = null;
-         if (user) {
-            // User is signed in, see docs for a list of available properties
-            // https://firebase.google.com/docs/reference/js/firebase.User
-            userData = createUserObject(user);
-         }
+      const unsubscribe = onAuthStateChanged(_auth, (user:any|null) => {
          //console.log(callerName, `perpetual:`, perpetual); // Don't delete
-         callback(userData);
+         callback(user);
          if(!perpetual)
             unsubscribe();
       },
@@ -193,9 +187,7 @@ function registerAuthStateChanged(callback:Function, perpetual:boolean /*, calle
       return unsubscribe;
    }
    catch (error) {
-      if(process.browser) {
-         alert('Error occurred while registering to authentication state; but you will still able to contunue to use the App.');
-      }
+      alert('Error occurred while registering to authentication state; but you will still able to contunue to use the App.');
    }
 }
 
@@ -207,7 +199,7 @@ function googleSignIn(locale?:string) {
          _auth.languageCode = locale;
 
       signInWithRedirect(_auth, _siginProvider, browserPopupRedirectResolver)
-         .then((user:any) => resolve(null))
+         .then(() => resolve(null))
          .catch(error => reject(error));
    });
 }
@@ -236,16 +228,16 @@ function isAuthenticated() : Promise<boolean> {
 function isAuthorized(roleName:string) : Promise<boolean> {
    return new Promise((resolve, reject) => {
       registerAuthStateChanged(
-         (user:UserData|null) => {
+         (user:any|null) => {
             if(!user)
                resolve(false);
             else {
-               getSingle(DB.Collections.roles, roleName)
-                  .then(data => {
+               getById(DB.Collections.roles, roleName)
+                  .then((data:any) => {
                      const flag = data ? data.users.includes(user.uid2) : false;
                      resolve(flag);
                   })
-                  .catch(err => {
+                  .catch((err:any) => {
                      reject(err);
                   });
             }
@@ -259,7 +251,7 @@ function checkForRedirectSignIn() : Promise<any> {
  return new Promise((resolve, reject) => {
 
    getRedirectResult(_auth, browserPopupRedirectResolver)
-      .then((result: UserCredential | null) => {
+      .then((result: any|null) => {
          if (result === null)
             resolve(null);
 
@@ -286,18 +278,6 @@ function checkForRedirectSignIn() : Promise<any> {
       }); // catch
  }); // new promise
 }
-
-function createUserObject(user:User):UserData {
-   const userData = new UserData();
-   userData.uid2 = user.uid;
-   Object.keys(user.providerData[0]).forEach(k => (<any>userData)[k] = (<any>user.providerData[0])[k]);
-
-   userData.creationTime = user.metadata.creationTime ? new Date(user.metadata.creationTime) : undefined;
-   userData.lastSignInTime = user.metadata.lastSignInTime ? new Date(user.metadata.lastSignInTime) : undefined;
-
-   return userData;
-}
-
 
 const firestoreService = {
    getCollection,
