@@ -3,13 +3,13 @@ import { RouterLink, RouterView } from 'vue-router'
 import { firestoreService } from '@/services/firestoreService'
 import { onMounted } from 'vue';
 
-function signin() {
-   firestoreService.googleSignIn().then(() => {}).catch(console.log);
-}
-
 onMounted(() => {
    firestoreService.checkForRedirectSignIn().then().catch();
 });
+
+function signinToGoogle() {
+   firestoreService.googleSignIn().then(() => {}).catch(console.log);
+}
 </script>
 
 <template>
@@ -26,7 +26,7 @@ onMounted(() => {
       </v-main>
       <hr class="my-5" style="color: silver;">
       <footer>
-         <v-btn icon="mdi-shield-home" variant="flat" @click="signin"></v-btn>
+         <v-btn icon="mdi-shield-home" variant="flat" @click="signinToGoogle"></v-btn>
       </footer>
    </v-app>
 </template>
