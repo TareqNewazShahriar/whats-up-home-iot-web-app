@@ -13,7 +13,7 @@ var _requestedDataRef;
 const machineData = reactive({
    thermistor: {},
    photoresistor: {},
-   photoresistorStatus: [],
+   LightConditions: null,
    bulbControlMode: null,
    bulbState: null,
    time: null,
@@ -149,11 +149,11 @@ onMounted(() => {
                   <strong class="text-no-wrap mr-2">Room Light</strong>
                   <div class="d-flex align-start" style="width: 100%; height: 90px;">
                      <v-slider
-                        :ticks="{ 187: 'Good Light', 200: 'Medium Light', 210: 'Light Dark', 217: 'Medium Dark', 235: 'Dark', 255: 'Blackhole' }"
+                        :ticks="machineData.LightConditions ? Object.entries(machineData.LightConditions).reduce((initObj, x) => { initObj[x[1]] = x[0]; return initObj; }, {}) : null"
                         tick-size="7"
                         show-ticks="always"
-                        min="155"
-                        max="255"
+                        min="255"
+                        max="150"
                         thumb-label
                         track-fill-color="blue-darken-1"
                         readonly
@@ -225,7 +225,7 @@ onMounted(() => {
                      </td>
                   </tr>
                   <tr>
-                     <td class="font-weight-bold">NodeJS PID</td>
+                     <td class="font-weight-bold">Node PID</td>
                      <td>{{ machineData.node_pid }}</td>
                   </tr>
                </table>
