@@ -249,12 +249,8 @@ function isAuthorized(roleName:string) : Promise<boolean> {
 
 function checkForRedirectSignIn() : Promise<any> {
  return new Promise((resolve, reject) => {
-
    getRedirectResult(_auth, browserPopupRedirectResolver)
       .then((result: any|null) => {
-         if (result === null)
-            resolve(null);
-
          // This gives you a Google Access Token. You can use it to access Google APIs.
          // const credential: OAuthCredential | null = GoogleAuthProvider.credentialFromResult(result);
          //const token = credential?.accessToken;
@@ -264,18 +260,7 @@ function checkForRedirectSignIn() : Promise<any> {
 
          resolve(result)
       })
-      .catch((error) => {
-         // Handle Errors here.
-         const errorCode = error.code;
-         const errorMessage = error.message;
-         // The email of the user's account used.
-         const email = error.email;
-         // The AuthCredential type that was used.
-         //const credential = _siginProvider.credentialFromError(error);
-
-         reject(error);
-         // ...
-      }); // catch
+      .catch(reject);
  }); // new promise
 }
 

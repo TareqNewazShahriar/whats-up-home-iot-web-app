@@ -2,9 +2,14 @@
 import { RouterLink, RouterView } from 'vue-router'
 import { firestoreService } from '@/services/firestoreService'
 import { onMounted } from 'vue';
+import { ref } from 'vue';
+
+const userDisplayName = ref('');
 
 onMounted(() => {
-   firestoreService.checkForRedirectSignIn().then().catch();
+   firestoreService.registerAuthStateChanged((user:any)=> userDisplayName.value = (user ? user.displayName : ''),
+      true,
+      'App.vue > onMounted');
 });
 
 function signinToGoogle() {
@@ -26,7 +31,8 @@ function signinToGoogle() {
       </v-main>
       <hr class="my-5" style="color: silver;">
       <footer>
-         <v-btn icon="mdi-shield-home" variant="flat" @click="signinToGoogle"></v-btn>
+         <v-btn icon="mdi-shield-home" @click="signinToGoogle" :disabled="!!userDisplayName"></v-btn>
+         <label class="ml-2">{{ userDisplayName }}</label>
       </footer>
    </v-app>
 </template>
