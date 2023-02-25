@@ -157,7 +157,7 @@ onMounted(() => {
                         thumb-label
                         track-fill-color="blue-darken-1"
                         readonly
-                        :model-value="machineData.photoresistor.value"
+                        :model-value="machineData.photoresistor.value || 255"
                       ></v-slider>
                   </div>
                </div>
