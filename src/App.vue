@@ -7,9 +7,16 @@ import { ref } from 'vue';
 const userDisplayName = ref('');
 
 onMounted(() => {
-   firestoreService.registerAuthStateChanged((user:any)=> userDisplayName.value = (user ? user.displayName : ''),
+   firestoreService.registerAuthStateChanged((user:any)=> {
+         userDisplayName.value = (user ? user.displayName : '');
+         console.log({from: 'registerAuthStateChanged', user})
+      },
       true,
       'App.vue > onMounted');
+
+   firestoreService.checkForRedirectSignIn()
+      .then(result => console.log({ from: 'checkForRedirectSignIn > then', result}))
+      .catch(errorData => console.log({ from: 'checkForRedirectSignIn > catch', errorData}));
 });
 
 function signinToGoogle() {
