@@ -27,7 +27,7 @@ const communicationAlive = ref(Communication_Statuses.Loading);
 function changeBulbControlMode(e) {
    if (confirm('Change bulb control mode?') === true) {
       bulbControlModeRequested.value = true;
-      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode, url: window.location.href, browser: navigator.userAgent })
+      firestoreService.update(DB.Collections.values, 'bulb-control-mode__from-client', { value: machineData.bulbControlMode, time: new Date(), browser: navigator.userAgent })
          .catch(errorData => { bulbControlModeRequested.value = false; log(errorData)});
    }
    else {
@@ -40,7 +40,7 @@ function changeBulbState(e) {
    log({message: `Changing bulbState. ${machineData.bulbState}`}, true);
    if (confirm('Change bulb state?') === true) {
       bulbStateRequested.value = true;
-      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState, url: window.location.href, browser: navigator.userAgent })
+      firestoreService.update(DB.Collections.values, 'bulb-state__from-client', { value: machineData.bulbState, time: new Date(), browser: navigator.userAgent })
          .catch(errorData => { bulbStateRequested.value = false; log(errorData)});
    }
    else {
