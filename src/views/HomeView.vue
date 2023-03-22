@@ -131,9 +131,15 @@ onMounted(() => {
 
 <template>
    <div>
-      <div data-header class="d-flex justify-end align-center">
+      <div data-header
+         class="d-flex justify-end align-center"
+         @click="requestMachineData"
+         style="user-select: none;">
          {{Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]}}
-         <v-icon title="Communication status with Raspberry PI" :class="Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]">mdi-checkbox-blank-circle</v-icon>
+         <v-icon title="Communication status with Raspberry PI" 
+            :class="Object.entries(Communication_Statuses).find(x => x[1] == communicationAlive)[0]">
+            mdi-checkbox-blank-circle
+         </v-icon>
       </div>
       <div data-cards class="card-list my-8">
          <v-card env>
@@ -153,7 +159,7 @@ onMounted(() => {
                         tick-size="7"
                         show-ticks="always"
                         min="255"
-                        max="150"
+                        max="175"
                         thumb-label
                         track-fill-color="blue-darken-1"
                         readonly
@@ -239,7 +245,7 @@ onMounted(() => {
 
          <v-card class="console">
             <v-card-item>
-               <v-card-title>Console</v-card-title>
+               <v-card-title>Log</v-card-title>
             </v-card-item>
             <v-card-text style="overflow: auto; max-height:300px;">
                <pre>{{ logData }}</pre>
